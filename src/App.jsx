@@ -8,7 +8,8 @@ import Shows from "./components/Shows";
 import ConfigGeral from "./components/ConfigGeral";
 import Convites from "./components/Convites";
 import Marketing from "./components/Marketing";
-import { IconCalendar, IconUsers, IconDollar, IconSettings, IconLogout, IconChevronLeft, IconChevronRight, IconMail, IconImage } from "./icons";
+import Confirmacoes from "./components/Confirmacoes";
+import { IconCalendar, IconUsers, IconDollar, IconSettings, IconLogout, IconChevronLeft, IconChevronRight, IconMail, IconImage, IconCheck } from "./icons";
 
 const PAPEIS_PERMITIDOS = ["gestor", "gerente"];
 
@@ -17,8 +18,9 @@ const ABAS = [
   { key: "shows",      label: "Shows",      icon: IconDollar },
   { key: "artistas",   label: "Artistas",   icon: IconUsers },
   { key: "convites",   label: "Convites",   icon: IconMail },
-  { key: "marketing",  label: "Marketing",  icon: IconImage },
-  { key: "config",     label: "Config",     icon: IconSettings },
+  { key: "marketing",      label: "Marketing",      icon: IconImage },
+  { key: "confirmacoes",  label: "Confirmações",  icon: IconCheck },
+  { key: "config",         label: "Config",         icon: IconSettings },
 ];
 
 const SIDEBAR_EXPANDED = 220;
@@ -295,6 +297,7 @@ export default function App() {
         )}
         {aba === "convites" && <Convites key={convidarArtista?.id ?? "convites"} artistas={artistas} shows={shows} artistaInicial={convidarArtista} />}
         {aba === "marketing" && <Marketing artistas={artistas} shows={shows} />}
+        {aba === "confirmacoes" && <Confirmacoes artistas={artistas} shows={shows} />}
         {aba === "config" && <ConfigGeral tema={tema} onTemaChange={setTema} />}
       </main>
     </div>
