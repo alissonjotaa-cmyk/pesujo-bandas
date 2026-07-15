@@ -109,37 +109,38 @@ export default function Artistas({ artistas, shows, onAtualizar, onAgendar }) {
 }
 
 function BotaoDownloadFoto({ url, nome }) {
-  const [baixando, setBaixando] = useState(false);
+  const [mostrarDica, setMostrarDica] = useState(false);
+  const nomeArquivo = `${nome}.jpg`;
 
-  async function baixar() {
-    setBaixando(true);
-    try {
-      const res = await fetch(url);
-      const blob = await res.blob();
-      const ext = blob.type.includes("png") ? "png" : "jpg";
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = `${nome}.${ext}`;
-      link.click();
-      URL.revokeObjectURL(link.href);
-    } catch {
-      window.open(url, "_blank");
-    } finally {
-      setBaixando(false);
-    }
+  function abrir() {
+    window.open(url, "_blank");
+    setMostrarDica(true);
+    setTimeout(() => setMostrarDica(false), 5000);
   }
 
   return (
-    <button onClick={baixar} disabled={baixando} title="Baixar foto"
-      style={{
-        position: "absolute", bottom: 8, right: 8,
-        background: "rgba(0,0,0,0.6)", border: "none", borderRadius: 6,
-        padding: "5px 9px", cursor: "pointer", color: "#fff",
-        fontSize: 11, fontWeight: 600,
-        display: "flex", alignItems: "center", gap: 4,
-      }}>
-      {baixando ? "…" : "⬇ Baixar foto"}
-    </button>
+    <>
+      <button onClick={abrir} title="Abrir foto para salvar"
+        style={{
+          position: "absolute", bottom: 8, right: 8,
+          background: "rgba(0,0,0,0.65)", border: "none", borderRadius: 6,
+          padding: "5px 9px", cursor: "pointer", color: "#fff",
+          fontSize: 11, fontWeight: 600,
+          display: "flex", alignItems: "center", gap: 4,
+        }}>
+        ⬇ Baixar foto
+      </button>
+      {mostrarDica && (
+        <div style={{
+          position: "absolute", bottom: 40, right: 8, left: 8,
+          background: "rgba(0,0,0,0.85)", borderRadius: 8, padding: "8px 10px",
+          fontSize: 11, color: "#fff", lineHeight: 1.5,
+        }}>
+          Na nova aba: clique direito na foto → <strong>"Salvar imagem como"</strong><br />
+          Nome sugerido: <strong>{nomeArquivo}</strong>
+        </div>
+      )}
+    </>
   );
 }
 
