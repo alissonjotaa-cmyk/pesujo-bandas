@@ -1,5 +1,5 @@
-import { useState, useRef } from "react";
-import { fbSet, fbUploadFoto } from "../firebase";
+import { useState, useRef, useEffect } from "react";
+import { fbSet, fbUploadFoto, fbGetOne } from "../firebase";
 import { GENEROS, getFormacoes } from "../regras";
 import { IconPlus, IconX, IconCheck } from "../icons";
 import { nanoid } from "../utils";
@@ -7,7 +7,7 @@ import { nanoid } from "../utils";
 const MAX_FORMACOES = 3;
 const NUMS = [1, 2, 3, 4, 5, 6, 7, 8];
 
-const TERMO_TEXTO = `Convivência com Artistas – Bar Pé Sujo
+export const TERMO_TEXTO = `Convivência com Artistas – Bar Pé Sujo
 
 Para garantir uma ótima experiência entre o Bar Pé Sujo e os artistas contratados, estabelecemos algumas condições e orientações que devem ser aceitas antes de cada contratação.
 
@@ -59,7 +59,14 @@ export default function CadastroPublico() {
     formacoes: [{ nome: "", integrantes: 1, cache: "" }],
   });
   const [outroGenero, setOutroGenero] = useState("");
+  const [termoAtual, setTermoAtual] = useState(TERMO_TEXTO);
   const [fotoFile, setFotoFile] = useState(null);
+
+  useEffect(() => {
+    fbGetOne("bandas_config", "termos").then(t => {
+      if (t?.texto) setTermoAtual(t.texto);
+    });
+  }, []);
   const [fotoPreview, setFotoPreview] = useState("");
   const [termoAceito, setTermoAceito] = useState(false);
   const [enviando, setEnviando] = useState(false);
@@ -312,7 +319,7 @@ export default function CadastroPublico() {
               fontSize: 12, lineHeight: 1.7, color: "var(--text2)",
               whiteSpace: "pre-wrap", background: "var(--bg)",
             }}>
-              {TERMO_TEXTO}
+              {termoAtual}
             </div>
             <label style={{
               display: "flex", alignItems: "flex-start", gap: 10,

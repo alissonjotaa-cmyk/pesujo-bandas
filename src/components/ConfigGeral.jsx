@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { fbSet, fbGetOne } from "../firebase";
 import { initGoogleCalendar, requestGoogleToken, revokeGoogleToken, listarCalendarios } from "../googleCalendar";
 import { IconCheck, IconX, IconRefresh, IconLink } from "../icons";
+import { TERMO_TEXTO } from "./CadastroPublico";
 
 export default function ConfigGeral({ onGcalChange }) {
   const [config, setConfig] = useState(null);
@@ -11,6 +12,8 @@ export default function ConfigGeral({ onGcalChange }) {
   const [gcalConectado, setGcalConectado] = useState(false);
   const [gcalIniciando, setGcalIniciando] = useState(false);
   const [salvo, setSalvo] = useState(false);
+  const [termoTexto, setTermoTexto] = useState("");
+  const [salvoTermo, setSalvoTermo] = useState(false);
 
   useEffect(() => {
     fbGetOne("bandas_config", "geral").then(c => {
@@ -18,6 +21,9 @@ export default function ConfigGeral({ onGcalChange }) {
       setConfig(c);
       setGcalClientId(c.gcalClientId ?? "");
       setGcalId(c.gcalId ?? "primary");
+    });
+    fbGetOne("bandas_config", "termos").then(t => {
+      setTermoTexto(t?.texto ?? TERMO_TEXTO);
     });
   }, []);
 
@@ -49,6 +55,12 @@ export default function ConfigGeral({ onGcalChange }) {
     setSalvo(true);
     onGcalChange?.({ conectado: gcalConectado, gcalId });
     setTimeout(() => setSalvo(false), 2000);
+  }
+
+  async function salvarTermo() {
+    await fbSet("bandas_config", "termos", { texto: termoTexto });
+    setSalvoTermo(true);
+    setTimeout(() => setSalvoTermo(false), 2000);
   }
 
   function desconectar() {
@@ -117,6 +129,25 @@ export default function ConfigGeral({ onGcalChange }) {
             <li>Cole o Client ID acima e clique em Salvar + Conectar</li>
           </ol>
         </details>
+      </section>
+
+      {/* Termo de Convivência */}
+      <section style={{ ...card, marginTop: 16 }}>
+        <h3 style={{ fontWeight: 700, marginBottom: 4 }}>📋 Termo de Convivência</h3>
+        <p style={{ color: "var(--text2)", fontSize: 12, marginBottom: 12 }}>
+          Texto exibido no formulário de cadastro de artistas. O artista deve aceitar antes de enviar.
+        </p>
+        <textarea
+          value={termoTexto}
+          onChange={e => setTermoTexto(e.target.value)}
+          rows={16}
+          style={{ ...inputStyle, resize: "vertical", fontSize: 12, lineHeight: 1.7, fontFamily: "inherit" }}
+        />
+        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 10 }}>
+          <button onClick={salvarTermo} style={btnPrimary}>
+            {salvoTermo ? <><IconCheck size={13} /> Salvo!</> : "Salvar termo"}
+          </button>
+        </div>
       </section>
 
       {/* Sobre */}
