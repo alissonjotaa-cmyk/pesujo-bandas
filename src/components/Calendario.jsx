@@ -160,7 +160,7 @@ function DiaCell({ dia, dataStr, regra, isHoje, passado, artistas, showDoSlot, s
     <div style={{
       background: isHoje ? "var(--primary)15" : "var(--card)",
       border: isHoje ? "1px solid var(--primary)88" : "1px solid var(--border)",
-      borderRadius: 6, padding: "4px 3px", minHeight: 72,
+      borderRadius: 6, padding: "6px 6px", minHeight: 100,
       opacity: fechado ? 0.35 : 1,
     }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
@@ -194,11 +194,11 @@ function DiaCell({ dia, dataStr, regra, isHoje, passado, artistas, showDoSlot, s
               display: "block", width: "100%", textAlign: "left",
               background: show ? corGenero + "22" : "var(--bg2)",
               border: `1px solid ${show ? corGenero + "55" : "var(--border)"}`,
-              borderRadius: 5, padding: "3px 5px", marginBottom: 3,
+              borderRadius: 5, padding: "4px 6px", marginBottom: 4,
               cursor: "pointer", color: show ? corGenero : "var(--text3)",
-              fontSize: 10, fontWeight: show ? 600 : 400, lineHeight: 1.3,
+              fontSize: 11, fontWeight: show ? 600 : 400, lineHeight: 1.3,
             }}>
-            <span style={{ color: "var(--text3)", fontSize: 9 }}>{slot} </span>
+            <span style={{ color: "var(--text3)", fontSize: 10 }}>{slot} </span>
             {show ? (
               <span style={{ display: "flex", alignItems: "center", gap: 3, overflow: "hidden" }}>
                 {/* Ponto do gênero selecionado, ou pontos de todos os gêneros se não houver seleção */}
@@ -229,11 +229,11 @@ function DiaCell({ dia, dataStr, regra, isHoje, passado, artistas, showDoSlot, s
               display: "block", width: "100%", textAlign: "left",
               background: corGenero + "22",
               border: `1px dashed ${corGenero}55`,
-              borderRadius: 5, padding: "3px 5px", marginBottom: 3,
+              borderRadius: 5, padding: "4px 6px", marginBottom: 4,
               cursor: "pointer", color: corGenero,
-              fontSize: 10, fontWeight: 600, lineHeight: 1.3,
+              fontSize: 11, fontWeight: 600, lineHeight: 1.3,
             }}>
-            <span style={{ color: "var(--text3)", fontSize: 9 }}>{show.horario} </span>
+            <span style={{ color: "var(--text3)", fontSize: 10 }}>{show.horario} </span>
             <span style={{ display: "flex", alignItems: "center", gap: 3, overflow: "hidden" }}>
               {(() => {
                 const generos = show.generoId ? [show.generoId] : (artista?.generos ?? []);
