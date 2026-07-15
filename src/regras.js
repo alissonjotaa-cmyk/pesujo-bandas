@@ -1,5 +1,4 @@
 export const GENEROS = {
-  voz_violao: { label: "Voz e Violão", cor: "#06b6d4" },
   pop_rock:   { label: "Pop Rock",     cor: "#8b5cf6" },
   sertanejo:  { label: "Sertanejo",    cor: "#f59e0b" },
   forro:      { label: "Forró",        cor: "#f97316" },
@@ -15,15 +14,15 @@ export const REGRAS_DIA = {
   0: {
     nome: "Domingo",
     slots: ["13:00"],
-    generos: ["voz_violao"],
+    generos: ["pop_rock", "sertanejo", "forro", "axe", "samba", "pagode", "mpb", "outro"],
     minIntegrantes: 1,
     maxIntegrantes: 1,
-    descricao: "Voz e Violão",
+    descricao: "Solo / Acústico",
   },
   1: {
     nome: "Segunda",
     slots: ["19:30"],
-    generos: ["voz_violao", "pop_rock", "sertanejo", "forro", "axe", "samba", "pagode", "mpb", "outro"],
+    generos: ["pop_rock", "sertanejo", "forro", "axe", "samba", "pagode", "mpb", "outro"],
     minIntegrantes: null,
     maxIntegrantes: null,
     descricao: "Segunda-feira",
@@ -31,10 +30,10 @@ export const REGRAS_DIA = {
   2: {
     nome: "Terça",
     slots: ["19:30"],
-    generos: ["voz_violao"],
+    generos: ["pop_rock", "sertanejo", "forro", "axe", "samba", "pagode", "mpb", "outro"],
     minIntegrantes: 1,
     maxIntegrantes: 1,
-    descricao: "Voz e Violão",
+    descricao: "Solo / Acústico",
   },
   3: {
     nome: "Quarta",
