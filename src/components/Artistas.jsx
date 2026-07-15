@@ -866,7 +866,7 @@ function ModalAgendarShow({ artista, shows, onFechar, onSalvarShow, onSalvo }) {
 function ModalCadastroLink({ onFechar }) {
   const [copiado, setCopiado] = useState(false);
   const url = `${window.location.origin}/cadastro`;
-  const msgWpp = `Olá! Para se cadastrar como artista no Bar Pé Sujo e concorrer a shows, acesse o link:\n${url}`;
+  const msgWpp = `E aí?! Que bom ter você por aqui, faça parte do quadro de Artistas do Bar Pé Sujo se cadastrando neste link:\n${url}`;
 
   function copiar() {
     navigator.clipboard.writeText(url);
