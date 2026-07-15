@@ -17,6 +17,7 @@ export default function ConvitePublico({ id }) {
   const [observacoes, setObservacoes] = useState({}); // { slotIndex: string }
   const [enviando, setEnviando] = useState(false);
   const [resultado, setResultado] = useState(null);
+  const [erro, setErro] = useState(null);
 
   useEffect(() => {
     getDoc(doc(db, "bandas_convites", id)).then(snap => {
@@ -33,6 +34,7 @@ export default function ConvitePublico({ id }) {
 
   async function confirmar() {
     setEnviando(true);
+    setErro(null);
     try {
       const showsExistentes = await fbGetAllQuery("bandas_shows", where("status", "!=", "cancelado"));
       const slotOcupado = (data, horario) =>
@@ -91,6 +93,13 @@ export default function ConvitePublico({ id }) {
 
       setConvite(c => ({ ...c, slots: slotsAtualizados, status: novoStatus }));
       setResultado({ aceitos, conflitos, recusados });
+    } catch (err) {
+      console.error("Erro ao confirmar convite:", err);
+      setErro(
+        err?.code === "permission-denied"
+          ? "Sem permissão para salvar. Verifique as regras do Firebase (bandas_shows e bandas_convites precisam permitir escrita pública)."
+          : `Erro ao confirmar: ${err?.message ?? "Tente novamente."}`
+      );
     } finally {
       setEnviando(false);
     }
@@ -265,6 +274,16 @@ export default function ConvitePublico({ id }) {
             );
           })}
         </div>
+
+        {erro && (
+          <div style={{
+            background: "#ef444420", border: "1px solid #ef444488",
+            borderRadius: 8, padding: "10px 14px", marginBottom: 12,
+            color: "#ef4444", fontSize: 13, lineHeight: 1.5,
+          }}>
+            {erro}
+          </div>
+        )}
 
         <button onClick={confirmar} disabled={!todasRespondidas || enviando}
           style={{
