@@ -116,8 +116,15 @@ export default function CadastroPublico() {
       let fotoUrl = "";
       let fotoPath = "";
       if (fotoFile) {
-        fotoPath = `bandas_artistas/${id}/cartaz`;
-        fotoUrl = await fbUploadFoto(fotoPath, fotoFile);
+        try {
+          fotoPath = `bandas_artistas/${id}/cartaz`;
+          fotoUrl = await fbUploadFoto(fotoPath, fotoFile);
+        } catch (uploadErr) {
+          console.warn("Upload da foto falhou:", uploadErr.message);
+          // Continua sem foto — o cadastro é salvo normalmente
+          fotoUrl = "";
+          fotoPath = "";
+        }
       }
 
       await fbSet("bandas_artistas", id, {
