@@ -13,7 +13,7 @@ function diasElegiveis(artista) {
     .map(([, r]) => r.nome);
 }
 
-export default function Artistas({ artistas, shows, onAtualizar, onSalvarShow, onAgendar }) {
+export default function Artistas({ artistas, shows, onAtualizar, onSalvarShow, onAgendar, onConvite }) {
   const [busca, setBusca] = useState("");
   const [filtroGenero, setFiltroGenero] = useState("");
   const [filtroStatus, setFiltroStatus] = useState("");
@@ -118,6 +118,7 @@ export default function Artistas({ artistas, shows, onAtualizar, onSalvarShow, o
               onDelete={() => excluir(a.id)}
               onAgendar={() => setModalAgendar(a)}
               onAprovar={() => aprovar(a)}
+              onConvite={() => onConvite?.(a)}
             />
           ))}
         </div>
@@ -213,7 +214,7 @@ function BotaoCopiarPix({ pix }) {
   );
 }
 
-function ArtistaCard({ artista, onEdit, onDelete, onAgendar, onAprovar }) {
+function ArtistaCard({ artista, onEdit, onDelete, onAgendar, onAprovar, onConvite }) {
   const dias = diasElegiveis(artista);
   const pendente = artista.status === "pendente";
   return (
@@ -323,6 +324,12 @@ function ArtistaCard({ artista, onEdit, onDelete, onAgendar, onAprovar }) {
         ...btnPrimary, fontSize: 12, padding: "7px 12px", width: "100%", marginTop: 2,
       }}>
         <IconCalendar size={13} /> Agendar show
+      </button>
+      <button onClick={onConvite} style={{
+        ...btnPrimary, fontSize: 12, padding: "7px 12px", width: "100%", marginTop: 6,
+        background: "#059669", border: "none",
+      }}>
+        <IconMail size={13} /> Convite de show
       </button>
       {artista.pix && <BotaoCopiarPix pix={artista.pix} />}
       {artista.observacoes && (

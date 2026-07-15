@@ -32,6 +32,7 @@ export default function App() {
   const [shows, setShows] = useState([]);
   const [collapsed, setCollapsed] = useState(false);
   const [agendarArtista, setAgendarArtista] = useState(null);
+  const [convidarArtista, setConvidarArtista] = useState(null);
   const [tema, setTema] = useState(() => localStorage.getItem("tema") ?? "dark");
 
   useEffect(() => {
@@ -289,9 +290,10 @@ export default function App() {
         {aba === "artistas" && (
           <Artistas artistas={artistas} shows={shows} onAtualizar={recarregar}
             onSalvarShow={salvarShow}
-            onAgendar={artista => { setAgendarArtista(artista); setAba("calendario"); }} />
+            onAgendar={artista => { setAgendarArtista(artista); setAba("calendario"); }}
+            onConvite={artista => { setConvidarArtista(artista); setAba("convites"); }} />
         )}
-        {aba === "convites" && <Convites artistas={artistas} shows={shows} />}
+        {aba === "convites" && <Convites key={convidarArtista?.id ?? "convites"} artistas={artistas} shows={shows} artistaInicial={convidarArtista} />}
         {aba === "marketing" && <Marketing artistas={artistas} shows={shows} />}
         {aba === "config" && <ConfigGeral tema={tema} onTemaChange={setTema} />}
       </main>

@@ -19,9 +19,9 @@ const STATUS_LABEL = {
   recusado: "Recusado",
 };
 
-export default function Convites({ artistas, shows }) {
+export default function Convites({ artistas, shows, artistaInicial }) {
   const [convites, setConvites] = useState([]);
-  const [modalAberto, setModalAberto] = useState(false);
+  const [modalAberto, setModalAberto] = useState(!!artistaInicial);
   const [linkGerado, setLinkGerado] = useState(null);
   const [filtro, setFiltro] = useState("todos"); // "todos" | "pendente" | "respondido" | "recusado"
 
@@ -193,6 +193,7 @@ export default function Convites({ artistas, shows }) {
         <ModalNovoConvite
           artistas={artistas}
           shows={shows}
+          artistaInicial={artistaInicial}
           onFechar={() => setModalAberto(false)}
           onCriado={(convite) => {
             setModalAberto(false);
@@ -212,9 +213,9 @@ export default function Convites({ artistas, shows }) {
   );
 }
 
-function ModalNovoConvite({ artistas, shows, onFechar, onCriado }) {
+function ModalNovoConvite({ artistas, shows, onFechar, onCriado, artistaInicial }) {
   const hoje = new Date();
-  const [artistaId, setArtistaId] = useState("");
+  const [artistaId, setArtistaId] = useState(artistaInicial?.id ?? "");
   const [ano, setAno] = useState(hoje.getFullYear());
   const [mes, setMes] = useState(hoje.getMonth());
   const [selecionadas, setSelecionadas] = useState({});
