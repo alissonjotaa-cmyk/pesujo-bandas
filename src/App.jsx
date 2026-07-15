@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
-import { auth, onAuthStateChanged, signOut, fbGetOne, fbListen, orderBy } from "./firebase";
-import { initGoogleCalendar, requestGoogleToken } from "./googleCalendar";
+import { auth, onAuthStateChanged, signOut, fbGetOne, fbSet, fbListen, orderBy } from "./firebase";
+import { initGoogleCalendar, requestGoogleToken, criarEventoCalendar, atualizarEventoCalendar, getAccessToken } from "./googleCalendar";
+import { nanoid } from "./utils";
 import Login from "./components/Login";
 import Artistas from "./components/Artistas";
 import Calendario from "./components/Calendario";
@@ -59,6 +60,33 @@ export default function App() {
   }, [user]);
 
   const recarregar = useCallback(() => {}, []);
+
+  // Salva show no Firestore + sincroniza com Google Calendar
+  async function salvarShow(dados) {
+    const id = dados.id ?? nanoid();
+    const isNovo = !dados.id;
+    const payload = { ...dados, id };
+
+    if (gcal.conectado && getAccessToken()) {
+      const artistaObj = artistas.find(a => a.id === dados.artistaId);
+      if (artistaObj) {
+        try {
+          const showsNoDia = shows.filter(s => s.data === dados.data && s.id !== dados.id && s.status !== "cancelado");
+          const colorId = showsNoDia.length === 0 ? "5" : "11";
+          if (isNovo || !dados.gcalEventId) {
+            const evId = await criarEventoCalendar(payload, artistaObj, gcal.gcalId, colorId);
+            payload.gcalEventId = evId;
+          } else {
+            await atualizarEventoCalendar(dados.gcalEventId, payload, artistaObj, gcal.gcalId, colorId);
+          }
+        } catch (e) {
+          alert(`⚠️ Erro ao sincronizar com Google Calendar:\n${e.message}\n\nO show foi salvo normalmente.`);
+        }
+      }
+    }
+
+    await fbSet("bandas_shows", id, payload);
+  }
 
   if (user === undefined) return <Splash />;
   if (!user) return <Login />;
@@ -235,12 +263,14 @@ export default function App() {
 
         {aba === "calendario" && (
           <Calendario artistas={artistas} shows={shows} onAtualizar={recarregar}
+            onSalvarShow={salvarShow}
             gcalConectado={gcal.conectado} gcalId={gcal.gcalId}
             agendarArtista={agendarArtista} onAgendarClear={() => setAgendarArtista(null)} />
         )}
         {aba === "shows" && <Shows shows={shows} artistas={artistas} onAtualizar={recarregar} />}
         {aba === "artistas" && (
           <Artistas artistas={artistas} shows={shows} onAtualizar={recarregar}
+            onSalvarShow={salvarShow}
             onAgendar={artista => { setAgendarArtista(artista); setAba("calendario"); }} />
         )}
         {aba === "convites" && <Convites artistas={artistas} shows={shows} />}

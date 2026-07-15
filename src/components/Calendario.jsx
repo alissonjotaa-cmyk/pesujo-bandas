@@ -1,12 +1,12 @@
 import { useState, useMemo, useEffect } from "react";
-import { fbSet, fbDel } from "../firebase";
+import { fbDel } from "../firebase";
 import { REGRAS_DIA, GENEROS, artistasElegiveisParaSlot, getFormacoes } from "../regras";
-import { formatarMoeda, diasNoMes, primeiroDiaSemana, nanoid } from "../utils";
+import { formatarMoeda, diasNoMes, primeiroDiaSemana } from "../utils";
 import { IconChevronLeft, IconChevronRight, IconX, IconCheck, IconPlus, IconTrash, IconClock } from "../icons";
-import { criarEventoCalendar, atualizarEventoCalendar, deletarEventoCalendar, getAccessToken } from "../googleCalendar";
+import { deletarEventoCalendar, getAccessToken } from "../googleCalendar";
 import { MESES } from "../regras";
 
-export default function Calendario({ artistas, shows, onAtualizar, gcalConectado, gcalId, agendarArtista, onAgendarClear }) {
+export default function Calendario({ artistas, shows, onAtualizar, onSalvarShow, gcalConectado, gcalId, agendarArtista, onAgendarClear }) {
   const hoje = new Date();
   const [ano, setAno] = useState(hoje.getFullYear());
   const [mes, setMes] = useState(hoje.getMonth());
@@ -59,30 +59,7 @@ export default function Calendario({ artistas, shows, onAtualizar, gcalConectado
   const todayStr = hoje.toISOString().slice(0, 10);
 
   async function salvarShow(dados) {
-    const id = dados.id ?? nanoid();
-    const isNovo = !dados.id;
-    const payload = { ...dados, id };
-
-    if (gcalConectado && getAccessToken()) {
-      const artistaObj = artistas.find(a => a.id === dados.artistaId);
-      if (artistaObj) {
-        try {
-          // 1º show do dia = amarelo (5), 2º = vermelho (11)
-          const showsNoDia = shows.filter(s => s.data === dados.data && s.id !== dados.id && s.status !== "cancelado");
-          const colorId = showsNoDia.length === 0 ? "5" : "11";
-          if (isNovo || !dados.gcalEventId) {
-            const evId = await criarEventoCalendar(payload, artistaObj, gcalId, colorId);
-            payload.gcalEventId = evId;
-          } else {
-            await atualizarEventoCalendar(dados.gcalEventId, payload, artistaObj, gcalId, colorId);
-          }
-        } catch (e) {
-          console.warn("Google Calendar:", e.message);
-        }
-      }
-    }
-
-    await fbSet("bandas_shows", id, payload);
+    await onSalvarShow(dados);
     onAtualizar();
     setModalSlot(null);
   }

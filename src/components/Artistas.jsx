@@ -13,7 +13,7 @@ function diasElegiveis(artista) {
     .map(([, r]) => r.nome);
 }
 
-export default function Artistas({ artistas, shows, onAtualizar, onAgendar }) {
+export default function Artistas({ artistas, shows, onAtualizar, onSalvarShow, onAgendar }) {
   const [busca, setBusca] = useState("");
   const [filtroGenero, setFiltroGenero] = useState("");
   const [modal, setModal] = useState(null);
@@ -108,6 +108,7 @@ export default function Artistas({ artistas, shows, onAtualizar, onAgendar }) {
           artista={modalAgendar}
           shows={shows ?? []}
           onFechar={() => setModalAgendar(null)}
+          onSalvarShow={onSalvarShow}
           onSalvo={() => { onAtualizar(); setModalAgendar(null); }}
         />
       )}
@@ -561,7 +562,7 @@ function ModalArtista({ artista, onSalvar, onFechar }) {
   );
 }
 
-function ModalAgendarShow({ artista, shows, onFechar, onSalvo }) {
+function ModalAgendarShow({ artista, shows, onFechar, onSalvarShow, onSalvo }) {
   const hoje = new Date();
   const [ano, setAno] = useState(hoje.getFullYear());
   const [mes, setMes] = useState(hoje.getMonth());
@@ -647,7 +648,7 @@ function ModalAgendarShow({ artista, shows, onFechar, onSalvo }) {
     try {
       for (const [data, cfg] of datas) {
         const id = nanoid();
-        await fbSet("bandas_shows", id, {
+        await onSalvarShow({
           id, artistaId: artista.id, data,
           horario: cfg.horario, cache: Number(cfg.cache) || 0,
           generoId: cfg.generoId, formacaoIdx: cfg.formacaoIdx ?? 0,
