@@ -173,7 +173,7 @@ export default function CadastroPublico() {
     <div style={pageStyle}>
       {/* Header */}
       <div style={{ textAlign: "center", marginBottom: 24 }}>
-        <img src="/logo-pesujo.png" alt="Pé Sujo" style={{ height: 60, objectFit: "contain", marginBottom: 12 }} />
+        <img src="/logo-pesujo.png" alt="Pé Sujo" style={{ height: 48, objectFit: "contain", marginBottom: 12 }} />
         <h1 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Cadastro de Artista</h1>
         <p style={{ color: "var(--text2)", fontSize: 13 }}>Bar Pé Sujo — Preencha o formulário para entrar na nossa grade musical</p>
       </div>
