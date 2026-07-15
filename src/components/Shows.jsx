@@ -43,6 +43,28 @@ export default function Shows({ shows, artistas, onAtualizar, onSalvarShow }) {
     return r;
   }, [shows, filtroStatus, filtroMes]);
 
+  // Agrupa por semana Seg→Dom
+  const semanas = useMemo(() => {
+    const grupos = [];
+    lista.forEach(show => {
+      const d = new Date(show.data + "T12:00:00");
+      const dia = d.getDay(); // 0=dom
+      const diffSeg = dia === 0 ? -6 : 1 - dia;
+      const seg = new Date(d);
+      seg.setDate(d.getDate() + diffSeg);
+      const dom = new Date(seg);
+      dom.setDate(seg.getDate() + 6);
+      const chave = seg.toISOString().slice(0, 10);
+      let grupo = grupos.find(g => g.chave === chave);
+      if (!grupo) {
+        grupo = { chave, seg, dom, shows: [] };
+        grupos.push(grupo);
+      }
+      grupo.shows.push(show);
+    });
+    return grupos.sort((a, b) => b.chave.localeCompare(a.chave));
+  }, [lista]);
+
   const mesesDisponiveis = useMemo(() => {
     const set = new Set(shows.map(s => s.data?.slice(0, 7)).filter(Boolean));
     return [...set].sort((a, b) => b.localeCompare(a));
@@ -104,68 +126,80 @@ export default function Shows({ shows, artistas, onAtualizar, onSalvarShow }) {
           <IconClock size={40} /><p style={{ marginTop: 12 }}>Nenhum show encontrado.</p>
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {lista.map(show => {
-            const artista = artistas.find(a => a.id === show.artistaId);
-            const cor = STATUS_COR[show.status] ?? "var(--text3)";
-            const corGenero = artista?.generos?.[0] ? GENEROS[artista.generos[0]]?.cor : "var(--border)";
-
+        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+          {semanas.map(({ chave, seg, dom, shows: showsSemana }) => {
+            const fmt = d => `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}`;
+            const totalSemana = showsSemana.reduce((s, x) => s + (x.cache || 0), 0);
             return (
-              <div key={show.id} style={{
-                background: "var(--card)", border: "1px solid var(--border)",
-                borderRadius: 10, padding: "12px 14px",
-                display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap",
-              }}>
-                {/* Data/hora */}
-                <div style={{ minWidth: 90 }}>
-                  <div style={{ fontWeight: 700, fontSize: 13 }}>{formatarData(show.data)}</div>
-                  <div style={{ color: "var(--text3)", fontSize: 11 }}>{show.horario}</div>
-                </div>
-
-                {/* Artista */}
-                <div style={{ flex: 1, minWidth: 140 }}>
-                  <div style={{ fontWeight: 600, fontSize: 14, color: corGenero }}>{artista?.nome ?? "Artista removido"}</div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 3 }}>
-                    {artista?.generos?.map(g => (
-                      <span key={g} style={{ background: GENEROS[g]?.cor + "22", color: GENEROS[g]?.cor, border: `1px solid ${GENEROS[g]?.cor}44`, borderRadius: 20, padding: "1px 6px", fontSize: 10 }}>
-                        {GENEROS[g]?.label}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Cachê */}
-                <div style={{ minWidth: 90, textAlign: "right" }}>
-                  <div style={{ fontWeight: 700, color: "var(--accent)", fontSize: 14 }}>{formatarMoeda(show.cache)}</div>
-                </div>
-
-                {/* Status */}
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  {artista?.pix && <BotaoCopiarPix pix={artista.pix} />}
-                  <span style={{ color: cor, fontSize: 12, fontWeight: 600 }}>
-                    {STATUS_LABEL[show.status] ?? show.status}
+              <div key={chave}>
+                {/* Cabeçalho da semana */}
+                <div style={{
+                  display: "flex", alignItems: "center", justifyContent: "space-between",
+                  marginBottom: 8, padding: "6px 10px",
+                  background: "var(--bg2)", borderRadius: 8,
+                  border: "1px solid var(--border)",
+                }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text2)" }}>
+                    Seg {fmt(seg)} — Dom {fmt(dom)}
                   </span>
-                  {show.status !== "cancelado" && (
-                    <button
-                      onClick={() => togglePago(show)}
-                      disabled={carregando[show.id]}
-                      title={show.status === "pago" ? "Marcar como pendente" : "Marcar como pago"}
-                      style={{
-                        background: show.status === "pago" ? "var(--success)22" : "var(--bg3)",
-                        border: `1px solid ${show.status === "pago" ? "var(--success)" : "var(--border)"}`,
-                        borderRadius: 6, padding: "5px 8px", cursor: "pointer",
-                        color: show.status === "pago" ? "var(--success)" : "var(--text2)",
-                        display: "flex", alignItems: "center",
+                  <span style={{ fontSize: 11, color: "var(--accent)", fontWeight: 600 }}>
+                    {showsSemana.length} show{showsSemana.length > 1 ? "s" : ""} · {formatarMoeda(totalSemana)}
+                  </span>
+                </div>
+
+                {/* Shows da semana */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  {showsSemana.map(show => {
+                    const artista = artistas.find(a => a.id === show.artistaId);
+                    const cor = STATUS_COR[show.status] ?? "var(--text3)";
+                    const corGenero = artista?.generos?.[0] ? GENEROS[artista.generos[0]]?.cor : "var(--border)";
+                    return (
+                      <div key={show.id} style={{
+                        background: "var(--card)", border: "1px solid var(--border)",
+                        borderRadius: 10, padding: "12px 14px",
+                        display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap",
                       }}>
-                      <IconCheck size={13} />
-                    </button>
-                  )}
-                  <button
-                    onClick={() => setModalEditar(show)}
-                    title="Editar show"
-                    style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: 6, padding: "5px 8px", cursor: "pointer", color: "var(--text2)", fontSize: 12 }}>
-                    ✏️
-                  </button>
+                        <div style={{ minWidth: 90 }}>
+                          <div style={{ fontWeight: 700, fontSize: 13 }}>{formatarData(show.data)}</div>
+                          <div style={{ color: "var(--text3)", fontSize: 11 }}>{show.horario}</div>
+                        </div>
+                        <div style={{ flex: 1, minWidth: 140 }}>
+                          <div style={{ fontWeight: 600, fontSize: 14, color: corGenero }}>{artista?.nome ?? "Artista removido"}</div>
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 3 }}>
+                            {artista?.generos?.map(g => (
+                              <span key={g} style={{ background: GENEROS[g]?.cor + "22", color: GENEROS[g]?.cor, border: `1px solid ${GENEROS[g]?.cor}44`, borderRadius: 20, padding: "1px 6px", fontSize: 10 }}>
+                                {GENEROS[g]?.label}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        <div style={{ minWidth: 90, textAlign: "right" }}>
+                          <div style={{ fontWeight: 700, color: "var(--accent)", fontSize: 14 }}>{formatarMoeda(show.cache)}</div>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          {artista?.pix && <BotaoCopiarPix pix={artista.pix} />}
+                          <span style={{ color: cor, fontSize: 12, fontWeight: 600 }}>{STATUS_LABEL[show.status] ?? show.status}</span>
+                          {show.status !== "cancelado" && (
+                            <button onClick={() => togglePago(show)} disabled={carregando[show.id]}
+                              title={show.status === "pago" ? "Marcar como pendente" : "Marcar como pago"}
+                              style={{
+                                background: show.status === "pago" ? "var(--success)22" : "var(--bg3)",
+                                border: `1px solid ${show.status === "pago" ? "var(--success)" : "var(--border)"}`,
+                                borderRadius: 6, padding: "5px 8px", cursor: "pointer",
+                                color: show.status === "pago" ? "var(--success)" : "var(--text2)",
+                                display: "flex", alignItems: "center",
+                              }}>
+                              <IconCheck size={13} />
+                            </button>
+                          )}
+                          <button onClick={() => setModalEditar(show)} title="Editar show"
+                            style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: 6, padding: "5px 8px", cursor: "pointer", color: "var(--text2)", fontSize: 12 }}>
+                            ✏️
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             );
