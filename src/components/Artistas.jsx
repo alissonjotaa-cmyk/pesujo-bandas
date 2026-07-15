@@ -340,14 +340,10 @@ function ModalArtista({ artista, onSalvar, onFechar }) {
   function onFotoChange(e) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const ext = file.name.split(".").pop()?.toLowerCase();
-    if (ext === "heic" || ext === "heif" || file.type === "image/heic" || file.type === "image/heif") {
-      alert("Formato HEIC não suportado.\n\nConverta a foto para JPG ou PNG antes de enviar.\n\nNo iPhone: Ajustes → Câmera → Formatos → Mais Compatível.");
-      e.target.value = "";
-      return;
-    }
     setFotoFile(file);
-    setFotoPreview(URL.createObjectURL(file));
+    const ext = file.name.split(".").pop()?.toLowerCase();
+    const isHeic = ext === "heic" || ext === "heif" || file.type === "image/heic" || file.type === "image/heif";
+    setFotoPreview(isHeic ? "__heic__" : URL.createObjectURL(file));
   }
 
   function removerFoto() {
@@ -479,7 +475,12 @@ function ModalArtista({ artista, onSalvar, onFechar }) {
 
           <Field label="Cartaz / Foto">
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {fotoPreview ? (
+              {fotoPreview === "__heic__" ? (
+                <div style={{ borderRadius: 8, border: "1px solid var(--border)", background: "var(--bg3)", padding: "14px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <span style={{ fontSize: 13, color: "var(--text2)" }}>🖼️ Foto selecionada: <strong>{fotoFile?.name}</strong></span>
+                  <button type="button" onClick={removerFoto} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--danger)" }}><IconX size={14} /></button>
+                </div>
+              ) : fotoPreview ? (
                 <div style={{ position: "relative", width: "100%", borderRadius: 8, overflow: "hidden", border: "1px solid var(--border)" }}>
                   <img src={fotoPreview} alt="Cartaz" style={{ width: "100%", maxHeight: 200, objectFit: "cover", display: "block" }} />
                   <button type="button" onClick={removerFoto}

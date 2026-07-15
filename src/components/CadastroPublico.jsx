@@ -101,15 +101,11 @@ export default function CadastroPublico() {
   function onFotoChange(e) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const ext = file.name.split(".").pop()?.toLowerCase();
-    if (ext === "heic" || ext === "heif" || file.type === "image/heic" || file.type === "image/heif") {
-      setErro("Formato HEIC não suportado. Converta para JPG ou PNG antes de enviar.\n\nNo iPhone: Ajustes → Câmera → Formatos → Mais Compatível.");
-      e.target.value = "";
-      return;
-    }
     if (file.size > 5 * 1024 * 1024) { setErro("Imagem muito grande. Máximo 5 MB."); return; }
+    const ext = file.name.split(".").pop()?.toLowerCase();
+    const isHeic = ext === "heic" || ext === "heif" || file.type === "image/heic" || file.type === "image/heif";
     setFotoFile(file);
-    setFotoPreview(URL.createObjectURL(file));
+    setFotoPreview(isHeic ? "__heic__" : URL.createObjectURL(file));
     setErro("");
   }
 
@@ -294,7 +290,13 @@ export default function CadastroPublico() {
           </Field>
 
           <Field label="Foto / Cartaz">
-            {fotoPreview ? (
+            {fotoPreview === "__heic__" ? (
+              <div style={{ borderRadius: 10, border: "1px solid var(--border)", background: "var(--bg2)", padding: "14px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <span style={{ fontSize: 13, color: "var(--text2)" }}>🖼️ <strong>{fotoFile?.name}</strong></span>
+                <button type="button" onClick={() => { setFotoFile(null); setFotoPreview(""); if (fileRef.current) fileRef.current.value = ""; }}
+                  style={{ background: "none", border: "none", cursor: "pointer", color: "var(--danger)" }}><IconX size={14} /></button>
+              </div>
+            ) : fotoPreview ? (
               <div style={{ position: "relative", borderRadius: 10, overflow: "hidden", border: "1px solid var(--border)" }}>
                 <img src={fotoPreview} alt="Cartaz" style={{ width: "100%", maxHeight: 220, objectFit: "cover", display: "block" }} />
                 <button type="button" onClick={() => { setFotoFile(null); setFotoPreview(""); if (fileRef.current) fileRef.current.value = ""; }}
