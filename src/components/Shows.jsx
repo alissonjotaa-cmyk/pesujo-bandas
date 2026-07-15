@@ -1,8 +1,8 @@
 import { useState, useMemo } from "react";
 import { fbSet } from "../firebase";
-import { GENEROS } from "../regras";
+import { GENEROS, REGRAS_DIA } from "../regras";
 import { formatarMoeda, formatarData } from "../utils";
-import { IconCheck, IconClock, IconFilter, IconDollar } from "../icons";
+import { IconCheck, IconClock, IconFilter, IconDollar, IconX } from "../icons";
 
 function BotaoCopiarPix({ pix }) {
   const [copiado, setCopiado] = useState(false);
@@ -30,10 +30,11 @@ function BotaoCopiarPix({ pix }) {
 const STATUS_LABEL = { pendente: "Pendente", pago: "Pago", cancelado: "Cancelado" };
 const STATUS_COR = { pendente: "var(--warning)", pago: "var(--success)", cancelado: "var(--danger)" };
 
-export default function Shows({ shows, artistas, onAtualizar }) {
+export default function Shows({ shows, artistas, onAtualizar, onSalvarShow }) {
   const [filtroStatus, setFiltroStatus] = useState("");
   const [filtroMes, setFiltroMes] = useState("");
   const [carregando, setCarregando] = useState({});
+  const [modalEditar, setModalEditar] = useState(null);
 
   const lista = useMemo(() => {
     let r = [...shows].sort((a, b) => b.data?.localeCompare(a.data ?? "") ?? 0);
@@ -63,6 +64,14 @@ export default function Shows({ shows, artistas, onAtualizar }) {
 
   return (
     <div style={{ padding: "20px 16px", maxWidth: 900, margin: "0 auto" }}>
+      {modalEditar && (
+        <ModalEditarShow
+          show={modalEditar}
+          artistas={artistas}
+          onSalvar={async (dados) => { await onSalvarShow(dados); setModalEditar(null); }}
+          onFechar={() => setModalEditar(null)}
+        />
+      )}
       <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 20 }}>📋 Shows Agendados</h2>
 
       {/* Totalizadores */}
@@ -151,12 +160,128 @@ export default function Shows({ shows, artistas, onAtualizar }) {
                       <IconCheck size={13} />
                     </button>
                   )}
+                  <button
+                    onClick={() => setModalEditar(show)}
+                    title="Editar show"
+                    style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: 6, padding: "5px 8px", cursor: "pointer", color: "var(--text2)", fontSize: 12 }}>
+                    ✏️
+                  </button>
                 </div>
               </div>
             );
           })}
         </div>
       )}
+    </div>
+  );
+}
+
+function ModalEditarShow({ show, artistas, onSalvar, onFechar }) {
+  const artista = artistas.find(a => a.id === show.artistaId);
+  const [data, setData] = useState(show.data ?? "");
+  const [horario, setHorario] = useState(show.horario ?? "");
+  const [cache, setCache] = useState(show.cache ?? "");
+  const [status, setStatus] = useState(show.status ?? "pendente");
+  const [observacoes, setObservacoes] = useState(show.observacoes ?? "");
+  const [horarioCustom, setHorarioCustom] = useState("");
+  const [salvando, setSalvando] = useState(false);
+
+  // Slots padrão para o dia da semana escolhido
+  const diaSemana = data ? new Date(data + "T12:00:00").getDay() : null;
+  const slots = diaSemana !== null ? (REGRAS_DIA[diaSemana]?.slots ?? []) : [];
+
+  async function salvar() {
+    if (!data || !horario) return;
+    setSalvando(true);
+    try {
+      await onSalvar({ ...show, data, horario, cache: Number(cache) || 0, status, observacoes });
+    } finally {
+      setSalvando(false);
+    }
+  }
+
+  const horarioFinal = horarioCustom.trim() || horario;
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+      <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 14, padding: 24, width: "100%", maxWidth: 420, display: "flex", flexDirection: "column", gap: 16 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <h3 style={{ fontWeight: 700, fontSize: 16 }}>✏️ Editar Show</h3>
+          <button onClick={onFechar} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text2)" }}><IconX size={18} /></button>
+        </div>
+
+        {artista && (
+          <div style={{ fontSize: 13, color: "var(--text2)" }}>
+            Artista: <strong style={{ color: "var(--text)" }}>{artista.nome}</strong>
+          </div>
+        )}
+
+        {/* Data */}
+        <div>
+          <label style={labelStyle}>Data</label>
+          <input type="date" value={data} onChange={e => { setData(e.target.value); setHorario(""); setHorarioCustom(""); }} style={inputStyle} />
+        </div>
+
+        {/* Horário — slots do dia ou custom */}
+        {data && (
+          <div>
+            <label style={labelStyle}>Horário</label>
+            {slots.length > 0 && (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 8 }}>
+                {slots.map(s => (
+                  <button key={s} type="button"
+                    onClick={() => { setHorario(s); setHorarioCustom(""); }}
+                    style={{
+                      borderRadius: 6, padding: "4px 10px", fontSize: 12, cursor: "pointer",
+                      background: horario === s && !horarioCustom ? "var(--primary)" : "var(--bg2)",
+                      color: horario === s && !horarioCustom ? "#fff" : "var(--text2)",
+                      border: `1px solid ${horario === s && !horarioCustom ? "var(--primary)" : "var(--border)"}`,
+                      fontWeight: horario === s && !horarioCustom ? 700 : 400,
+                    }}>
+                    {s}
+                  </button>
+                ))}
+              </div>
+            )}
+            <input
+              type="time"
+              value={horarioCustom}
+              onChange={e => { setHorarioCustom(e.target.value); setHorario(e.target.value); }}
+              placeholder="Horário personalizado"
+              style={{ ...inputStyle, fontSize: 13 }}
+            />
+          </div>
+        )}
+
+        {/* Cachê */}
+        <div>
+          <label style={labelStyle}>Cachê (R$)</label>
+          <input type="number" value={cache} onChange={e => setCache(e.target.value)} min={0} style={inputStyle} />
+        </div>
+
+        {/* Status */}
+        <div>
+          <label style={labelStyle}>Status</label>
+          <select value={status} onChange={e => setStatus(e.target.value)} style={inputStyle}>
+            <option value="pendente">⏳ Pendente</option>
+            <option value="pago">✅ Pago</option>
+            <option value="cancelado">❌ Cancelado</option>
+          </select>
+        </div>
+
+        {/* Observações */}
+        <div>
+          <label style={labelStyle}>Observações</label>
+          <textarea value={observacoes} onChange={e => setObservacoes(e.target.value)} rows={2} style={{ ...inputStyle, resize: "vertical", fontFamily: "inherit" }} />
+        </div>
+
+        <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+          <button onClick={onFechar} style={btnSecondary}>Cancelar</button>
+          <button onClick={salvar} disabled={!data || !horario || salvando} style={btnPrimary}>
+            {salvando ? "Salvando…" : "Salvar"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -170,4 +295,7 @@ function Tile({ label, valor, cor }) {
   );
 }
 
-const inputStyle = { background: "var(--bg2)", border: "1px solid var(--border)", borderRadius: 8, padding: "9px 12px", color: "var(--text)", outline: "none" };
+const inputStyle = { background: "var(--bg2)", border: "1px solid var(--border)", borderRadius: 8, padding: "9px 12px", color: "var(--text)", outline: "none", width: "100%" };
+const labelStyle = { display: "block", color: "var(--text2)", fontSize: 12, marginBottom: 5 };
+const btnPrimary = { background: "var(--primary)", color: "#fff", border: "none", borderRadius: 8, padding: "9px 18px", fontWeight: 600, cursor: "pointer" };
+const btnSecondary = { background: "var(--bg3)", color: "var(--text)", border: "1px solid var(--border)", borderRadius: 8, padding: "9px 18px", fontWeight: 600, cursor: "pointer" };

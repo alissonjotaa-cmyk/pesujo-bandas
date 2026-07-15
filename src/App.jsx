@@ -275,7 +275,7 @@ export default function App() {
             gcalConectado={gcal.conectado} gcalId={gcal.gcalId}
             agendarArtista={agendarArtista} onAgendarClear={() => setAgendarArtista(null)} />
         )}
-        {aba === "shows" && <Shows shows={shows} artistas={artistas} onAtualizar={recarregar} />}
+        {aba === "shows" && <Shows shows={shows} artistas={artistas} onAtualizar={recarregar} onSalvarShow={salvarShow} />}
         {aba === "artistas" && (
           <Artistas artistas={artistas} shows={shows} onAtualizar={recarregar}
             onSalvarShow={salvarShow}
