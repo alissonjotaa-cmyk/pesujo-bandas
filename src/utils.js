@@ -21,5 +21,6 @@ export function diasNoMes(ano, mes) {
 }
 
 export function primeiroDiaSemana(ano, mes) {
-  return new Date(ano, mes, 1).getDay();
+  const d = new Date(ano, mes, 1).getDay(); // 0=Dom … 6=Sáb
+  return d === 0 ? 6 : d - 1; // converte para 0=Seg … 6=Dom
 }

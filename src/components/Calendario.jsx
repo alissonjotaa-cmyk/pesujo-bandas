@@ -91,7 +91,7 @@ export default function Calendario({ artistas, shows, onAtualizar, onSalvarShow,
 
       {/* Legenda dias */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 3, marginBottom: 3 }}>
-        {["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"].map(d => (
+        {["Seg","Ter","Qua","Qui","Sex","Sáb","Dom"].map(d => (
           <div key={d} style={{ textAlign: "center", color: "var(--text3)", fontSize: 11, fontWeight: 600, padding: "4px 0" }}>{d}</div>
         ))}
       </div>
