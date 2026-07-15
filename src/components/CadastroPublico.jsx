@@ -7,6 +7,51 @@ import { nanoid } from "../utils";
 const MAX_FORMACOES = 3;
 const NUMS = [1, 2, 3, 4, 5, 6, 7, 8];
 
+const TERMO_TEXTO = `Convivência com Artistas – Bar Pé Sujo
+
+Para garantir uma ótima experiência entre o Bar Pé Sujo e os artistas contratados, estabelecemos algumas condições e orientações que devem ser aceitas antes de cada contratação.
+
+1. Horário e Pontualidade
+O dia e horário da apresentação devem ser definidos claramente no momento da contratação. A chegada do artista ou banda deve ocorrer com mínimo de 20 minutos de antecedência, para instalação de equipamentos.
+Atrasos podem resultar em:
+• Cancelamento da apresentação, ou
+• Desconto proporcional no cachê, conforme o tempo perdido.
+
+2. Volume e Ambiente
+Nosso bar é um local de confraternização e boa convivência. O volume da apresentação deve ser ajustado com bom senso, para garantir:
+• Conforto sonoro dos clientes
+• Harmonia com a vizinhança
+• Evitar intervenções policiais
+Respeite a orientação do nosso técnico operador.
+
+3. Consumação
+Não praticamos consumação padrão. Concedemos cortesia de R$ 100,00 por apresentação (banda ou artista solo). O que exceder será descontado do cachê ou negociado à parte.
+
+3.1 Água mineral engarrafada será debitada da cortesia. Água filtrada da casa (jarra com gelo) é livre.
+
+3.2 Ao final da apresentação, assine sua comanda no caixa. Sem assinatura, não aceitaremos contestações.
+
+3.3 Para recebimento do cachê, é obrigatória a emissão de nota fiscal ou recibo simples.
+
+4. Equipamentos
+Caso utilize seu próprio sistema de som, disponibilizamos tomadas 110v (com 3 saídas).
+Caso utilize o som da casa, dispomos de:
+• 1 Caixa Amplificada de 15"
+• 1 Subwoofer de 15"
+• 1 Mesa analógica de 12 canais
+Cabo P10, microfone e pedestal são de responsabilidade do artista. Danos ou extravios aos equipamentos da casa serão de responsabilidade do artista caso esteja operando o material.
+
+5. Convidados
+Convidados que não pagarão couvert artístico devem ser informados antes do início da apresentação. Evite surpresas ou constrangimentos na cobrança.
+
+6. Pagamento
+O cachê será pago via transferência bancária até a terça-feira subsequente à apresentação. É imprescindível o envio do recibo ou nota fiscal.
+
+7. Considerações Finais
+O bom senso e o respeito mútuo são as chaves de uma boa parceria. O que for combinado previamente será cumprido com total profissionalismo por ambas as partes.
+
+O Bar Pé Sujo agradece a compreensão, dá as boas-vindas e deseja um ótimo show! 🎶🍻`;
+
 export default function CadastroPublico() {
   const [form, setForm] = useState({
     nome: "", contato: "", instagram: "", pix: "", observacoes: "",
@@ -15,6 +60,7 @@ export default function CadastroPublico() {
   });
   const [fotoFile, setFotoFile] = useState(null);
   const [fotoPreview, setFotoPreview] = useState("");
+  const [termoAceito, setTermoAceito] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [enviado, setEnviado] = useState(false);
   const [erro, setErro] = useState("");
@@ -57,6 +103,7 @@ export default function CadastroPublico() {
     e.preventDefault();
     if (!form.nome.trim()) return;
     if (form.generos.length === 0) { setErro("Selecione ao menos um gênero musical."); return; }
+    if (!termoAceito) { setErro("Você precisa aceitar os termos de convivência para continuar."); return; }
     setEnviando(true);
     setErro("");
     try {
@@ -237,14 +284,45 @@ export default function CadastroPublico() {
               rows={3} style={{ ...inputStyle, resize: "vertical" }} placeholder="Equipamentos necessários, repertório, referências, etc." />
           </Field>
 
+          {/* Termos de convivência */}
+          <div style={{ border: "1px solid var(--border)", borderRadius: 10, overflow: "hidden" }}>
+            <div style={{ background: "var(--bg2)", padding: "10px 14px", borderBottom: "1px solid var(--border)", fontWeight: 600, fontSize: 13, color: "var(--text)" }}>
+              📋 Termos de Convivência – Bar Pé Sujo
+            </div>
+            <div style={{
+              maxHeight: 220, overflowY: "auto", padding: "12px 14px",
+              fontSize: 12, lineHeight: 1.7, color: "var(--text2)",
+              whiteSpace: "pre-wrap", background: "var(--bg)",
+            }}>
+              {TERMO_TEXTO}
+            </div>
+            <label style={{
+              display: "flex", alignItems: "flex-start", gap: 10,
+              padding: "12px 14px", cursor: "pointer",
+              background: termoAceito ? "var(--success)11" : "var(--bg2)",
+              borderTop: "1px solid var(--border)",
+              transition: "background 0.2s",
+            }}>
+              <input
+                type="checkbox"
+                checked={termoAceito}
+                onChange={e => { setTermoAceito(e.target.checked); if (e.target.checked) setErro(""); }}
+                style={{ width: 16, height: 16, marginTop: 2, accentColor: "var(--primary)", flexShrink: 0, cursor: "pointer" }}
+              />
+              <span style={{ fontSize: 13, color: "var(--text)", fontWeight: 500 }}>
+                Li e aceito os termos de convivência do Bar Pé Sujo
+              </span>
+            </label>
+          </div>
+
           {erro && (
             <div style={{ background: "#ef444422", border: "1px solid #ef4444", borderRadius: 8, padding: "10px 14px", color: "#ef4444", fontSize: 13 }}>
               {erro}
             </div>
           )}
 
-          <button type="submit" disabled={enviando}
-            style={{ ...btnPrimary, padding: "13px", fontSize: 15, opacity: enviando ? 0.7 : 1 }}>
+          <button type="submit" disabled={enviando || !termoAceito}
+            style={{ ...btnPrimary, padding: "13px", fontSize: 15, opacity: (enviando || !termoAceito) ? 0.5 : 1, cursor: !termoAceito ? "not-allowed" : "pointer" }}>
             {enviando ? "Enviando…" : "Enviar cadastro"}
           </button>
 

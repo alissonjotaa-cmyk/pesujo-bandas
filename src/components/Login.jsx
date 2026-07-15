@@ -38,7 +38,7 @@ export default function Login() {
         boxShadow: "var(--shadow)",
       }}>
         <div style={{ textAlign: "center", marginBottom: 32 }}>
-          <div style={{ fontSize: 48, marginBottom: 8 }}>🎸</div>
+          <img src="/logo-pesujo.png" alt="Pé Sujo" style={{ width: "100%", maxWidth: 260, height: "auto", objectFit: "contain", marginBottom: 12 }} />
           <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--primary-light)" }}>Pé Sujo — Bandas</h1>
           <p style={{ color: "var(--text2)", fontSize: 13, marginTop: 4 }}>Gestão de contratações</p>
         </div>
