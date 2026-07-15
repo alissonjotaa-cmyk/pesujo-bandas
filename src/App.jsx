@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { auth, onAuthStateChanged, signOut, fbGetOne, fbSet, fbListen, orderBy } from "./firebase";
 import { initGoogleCalendar, requestGoogleToken, criarEventoCalendar, atualizarEventoCalendar, getAccessToken } from "./googleCalendar";
 import { nanoid } from "./utils";
@@ -35,6 +35,8 @@ export default function App() {
   const [collapsed, setCollapsed] = useState(false);
   const [agendarArtista, setAgendarArtista] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [toast, setToast] = useState(null);
+  const pendentesRef = useRef(null);
 
   const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
 
@@ -46,7 +48,25 @@ export default function App() {
 
   useEffect(() => {
     if (!user) return;
-    const unsub1 = fbListen("bandas_artistas", setArtistas);
+    const unsub1 = fbListen("bandas_artistas", (lista) => {
+      setArtistas(lista);
+      const qtd = lista.filter(a => a.status === "pendente").length;
+      if (pendentesRef.current !== null && qtd > pendentesRef.current) {
+        const novos = qtd - pendentesRef.current;
+        const msg = `🎤 ${novos} novo${novos > 1 ? "s" : ""} cadastro${novos > 1 ? "s" : ""} de artista aguardando aprovação`;
+        // Toast in-app
+        setToast(msg);
+        // Notificação do navegador
+        if (Notification.permission === "granted") {
+          new Notification("Pé Sujo Bandas", { body: msg, icon: "/logo-pesujo.png" });
+        } else if (Notification.permission !== "denied") {
+          Notification.requestPermission().then(p => {
+            if (p === "granted") new Notification("Pé Sujo Bandas", { body: msg, icon: "/logo-pesujo.png" });
+          });
+        }
+      }
+      pendentesRef.current = qtd;
+    });
     const unsub2 = fbListen("bandas_shows", setShows, orderBy("data", "desc"));
     return () => { unsub1(); unsub2(); };
   }, [user]);
@@ -104,8 +124,34 @@ export default function App() {
   const sw = isMobile ? 0 : (collapsed ? SIDEBAR_COLLAPSED : SIDEBAR_EXPANDED);
   const sidebarVisible = isMobile ? sidebarOpen : true;
 
+  const pendentes = artistas.filter(a => a.status === "pendente").length;
+
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
+
+      {/* Toast de novo cadastro */}
+      {toast && (
+        <div style={{
+          position: "fixed", bottom: 24, right: 24, zIndex: 9999,
+          background: "#f59e0b", color: "#000",
+          borderRadius: 12, padding: "14px 18px",
+          fontSize: 13, fontWeight: 600, maxWidth: 320,
+          boxShadow: "0 4px 20px rgba(0,0,0,0.4)",
+          display: "flex", alignItems: "flex-start", gap: 10,
+          animation: "slideIn 0.3s ease",
+        }}>
+          <span style={{ flex: 1 }}>{toast}</span>
+          <button
+            onClick={() => { setToast(null); setAba("artistas"); }}
+            style={{ background: "rgba(0,0,0,0.15)", border: "none", borderRadius: 6, padding: "3px 8px", cursor: "pointer", color: "#000", fontWeight: 700, fontSize: 11, whiteSpace: "nowrap" }}>
+            Ver agora
+          </button>
+          <button onClick={() => setToast(null)}
+            style={{ background: "none", border: "none", cursor: "pointer", color: "#000", padding: 0, fontSize: 16, lineHeight: 1, opacity: 0.6 }}>
+            ×
+          </button>
+        </div>
+      )}
 
       {/* Overlay escuro no mobile quando sidebar aberta */}
       {isMobile && sidebarOpen && (
@@ -159,6 +205,7 @@ export default function App() {
         <nav style={{ flex: 1, padding: "10px 0", display: "flex", flexDirection: "column", gap: 2 }}>
           {ABAS.map(({ key, label, icon: Icon }) => {
             const ativo = aba === key;
+            const pendentes = key === "artistas" ? artistas.filter(a => a.status === "pendente").length : 0;
             return (
               <button key={key} onClick={() => { setAba(key); if (isMobile) setSidebarOpen(false); }}
                 title={collapsed ? label : undefined}
@@ -172,8 +219,20 @@ export default function App() {
                   fontWeight: ativo ? 700 : 400, fontSize: 14,
                   textAlign: "left", whiteSpace: "nowrap", overflow: "hidden",
                   transition: "background 0.15s",
+                  position: "relative",
                 }}>
-                <Icon size={18} color={ativo ? "var(--primary-light)" : "var(--text2)"} style={{ flexShrink: 0 }} />
+                <div style={{ position: "relative", flexShrink: 0 }}>
+                  <Icon size={18} color={ativo ? "var(--primary-light)" : "var(--text2)"} />
+                  {pendentes > 0 && (
+                    <span style={{
+                      position: "absolute", top: -5, right: -6,
+                      background: "#f59e0b", color: "#000",
+                      fontSize: 9, fontWeight: 800, lineHeight: 1,
+                      borderRadius: 10, padding: "2px 4px", minWidth: 14,
+                      textAlign: "center",
+                    }}>{pendentes}</span>
+                  )}
+                </div>
                 {!collapsed && label}
               </button>
             );
