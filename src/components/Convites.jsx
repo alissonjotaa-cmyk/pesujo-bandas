@@ -334,7 +334,7 @@ function ModalNovoConvite({ artistas, shows, onFechar, onCriado }) {
 
         {/* Grid calendário */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 3, marginBottom: 14 }}>
-          {["D","S","T","Q","Q","S","S"].map((d, i) => (
+          {["S","T","Q","Q","S","S","D"].map((d, i) => (
             <div key={i} style={{ textAlign: "center", fontSize: 10, color: "var(--text3)", padding: "2px 0", fontWeight: 600 }}>{d}</div>
           ))}
           {Array.from({ length: inicioDia }).map((_, i) => <div key={`v${i}`} />)}
