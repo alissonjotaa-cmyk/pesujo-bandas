@@ -65,7 +65,7 @@ export default function Confirmacoes({ artistas, shows }) {
         >
           <option value="">— escolha um artista —</option>
           {[...artistas]
-            .filter(a => a.status === "aprovado")
+            .filter(a => (a.status ?? "ativo") !== "pendente")
             .sort((a, b) => a.nome?.localeCompare(b.nome ?? "") ?? 0)
             .map(a => (
               <option key={a.id} value={a.id}>{a.nome}</option>
