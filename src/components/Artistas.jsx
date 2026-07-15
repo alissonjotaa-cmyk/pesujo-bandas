@@ -108,6 +108,41 @@ export default function Artistas({ artistas, shows, onAtualizar, onAgendar }) {
   );
 }
 
+function BotaoDownloadFoto({ url, nome }) {
+  const [baixando, setBaixando] = useState(false);
+
+  async function baixar() {
+    setBaixando(true);
+    try {
+      const res = await fetch(url);
+      const blob = await res.blob();
+      const ext = blob.type.includes("png") ? "png" : "jpg";
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `${nome}.${ext}`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    } catch {
+      window.open(url, "_blank");
+    } finally {
+      setBaixando(false);
+    }
+  }
+
+  return (
+    <button onClick={baixar} disabled={baixando} title="Baixar foto"
+      style={{
+        position: "absolute", bottom: 8, right: 8,
+        background: "rgba(0,0,0,0.6)", border: "none", borderRadius: 6,
+        padding: "5px 9px", cursor: "pointer", color: "#fff",
+        fontSize: 11, fontWeight: 600,
+        display: "flex", alignItems: "center", gap: 4,
+      }}>
+      {baixando ? "…" : "⬇ Baixar foto"}
+    </button>
+  );
+}
+
 function BotaoCopiarPix({ pix }) {
   const [copiado, setCopiado] = useState(false);
 
@@ -172,17 +207,7 @@ function ArtistaCard({ artista, onEdit, onDelete, onAgendar, onAprovar }) {
             <span style={{ fontSize: 10, color: "var(--text3)" }}>Foto indisponível</span>
           </div>
           {/* Botão download */}
-          <a href={artista.fotoUrl} download={`${artista.nome}.jpg`} target="_blank" rel="noopener noreferrer"
-            title="Baixar foto"
-            style={{
-              position: "absolute", bottom: 8, right: 8,
-              background: "rgba(0,0,0,0.6)", border: "none", borderRadius: 6,
-              padding: "5px 9px", cursor: "pointer", color: "#fff",
-              fontSize: 11, fontWeight: 600, textDecoration: "none",
-              display: "flex", alignItems: "center", gap: 4,
-            }}>
-            ⬇ Baixar foto
-          </a>
+          <BotaoDownloadFoto url={artista.fotoUrl} nome={artista.nome} />
         </div>
       )}
       <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 10 }}>
