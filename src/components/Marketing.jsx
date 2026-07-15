@@ -1,85 +1,169 @@
 import { useState, useMemo } from "react";
-import { GENEROS, MESES } from "../regras";
-import { formatarData } from "../utils";
+import { GENEROS } from "../regras";
 import { IconDownload, IconImage, IconChevronLeft, IconChevronRight } from "../icons";
 
-const DIAS_SEMANA = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+const DIAS_SEMANA_LABEL = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+// Grid exibe Seg→Dom
+const ORDEM_GRID = [1, 2, 3, 4, 5, 6, 0];
+const LABELS_GRID = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
+
+function inicioSemana(ref) {
+  // Segunda-feira da semana que contém `ref`
+  const d = new Date(ref);
+  const dia = d.getDay(); // 0=dom
+  const diff = dia === 0 ? -6 : 1 - dia;
+  d.setDate(d.getDate() + diff);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function toDateStr(d) {
+  return d.toISOString().slice(0, 10);
+}
+
+function addDias(d, n) {
+  const r = new Date(d);
+  r.setDate(r.getDate() + n);
+  return r;
+}
 
 export default function Marketing({ shows, artistas }) {
   const hoje = new Date();
-  const [mesIdx, setMesIdx] = useState(hoje.getMonth());
-  const [anoIdx, setAnoIdx] = useState(hoje.getFullYear());
+  const [semanaBase, setSemanaBase] = useState(() => inicioSemana(hoje));
 
-  const mesFiltro = `${anoIdx}-${String(mesIdx + 1).padStart(2, "0")}`;
+  const dias = useMemo(() =>
+    ORDEM_GRID.map((_, i) => addDias(semanaBase, i)),
+    [semanaBase]
+  );
 
-  const showsDoMes = useMemo(() => {
-    return shows
-      .filter(s => s.data?.startsWith(mesFiltro) && s.status !== "cancelado")
-      .sort((a, b) => a.data.localeCompare(b.data) || a.horario.localeCompare(b.horario));
-  }, [shows, mesFiltro]);
+  const showsPorData = useMemo(() => {
+    const idx = {};
+    shows.forEach(s => {
+      if (s.status === "cancelado") return;
+      if (!idx[s.data]) idx[s.data] = [];
+      idx[s.data].push(s);
+    });
+    Object.values(idx).forEach(arr =>
+      arr.sort((a, b) => a.horario.localeCompare(b.horario))
+    );
+    return idx;
+  }, [shows]);
 
-  function navMes(dir) {
-    let nm = mesIdx + dir;
-    if (nm < 0) { setAnoIdx(a => a - 1); setMesIdx(11); }
-    else if (nm > 11) { setAnoIdx(a => a + 1); setMesIdx(0); }
-    else setMesIdx(nm);
+  function navSemana(dir) {
+    setSemanaBase(b => addDias(b, dir * 7));
   }
 
+  const inicioStr = toDateStr(dias[0]);
+  const fimStr    = toDateStr(dias[6]);
+  const todayStr  = toDateStr(hoje);
+
+  // Label do período
+  const mesInicio = dias[0].toLocaleDateString("pt-BR", { month: "short" }).replace(".", "");
+  const mesFim    = dias[6].toLocaleDateString("pt-BR", { month: "short" }).replace(".", "");
+  const anoInicio = dias[0].getFullYear();
+  const anoFim    = dias[6].getFullYear();
+  const periodoLabel = anoInicio === anoFim && mesInicio === mesFim
+    ? `${dias[0].getDate()} – ${dias[6].getDate()} de ${mesInicio} ${anoInicio}`
+    : anoInicio === anoFim
+    ? `${dias[0].getDate()} ${mesInicio} – ${dias[6].getDate()} ${mesFim} ${anoInicio}`
+    : `${dias[0].getDate()} ${mesInicio} ${anoInicio} – ${dias[6].getDate()} ${mesFim} ${anoFim}`;
+
   return (
-    <div style={{ padding: "20px 16px", maxWidth: 900, margin: "0 auto" }}>
-      <div style={{ marginBottom: 24 }}>
+    <div style={{ padding: "20px 16px", maxWidth: 1100, margin: "0 auto" }}>
+      <div style={{ marginBottom: 20 }}>
         <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>🎨 Marketing</h2>
         <p style={{ color: "var(--text2)", fontSize: 13 }}>
-          Visualize os shows agendados e baixe as fotos dos artistas para divulgação.
+          Grade semanal de shows para divulgação. Baixe as fotos dos artistas diretamente.
         </p>
       </div>
 
-      {/* Navegação de mês */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
-        <button onClick={() => navMes(-1)} style={iconBtn}><IconChevronLeft size={16} /></button>
-        <span style={{ fontWeight: 700, fontSize: 16, minWidth: 160, textAlign: "center" }}>
-          {MESES[mesIdx]} {anoIdx}
+      {/* Navegação de semana */}
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+        <button onClick={() => navSemana(-1)} style={iconBtn}><IconChevronLeft size={16} /></button>
+        <span style={{ fontWeight: 700, fontSize: 15, flex: 1, textAlign: "center" }}>
+          {periodoLabel}
         </span>
-        <button onClick={() => navMes(1)} style={iconBtn}><IconChevronRight size={16} /></button>
-        <span style={{ marginLeft: 8, fontSize: 12, color: "var(--text3)" }}>
-          {showsDoMes.length} show{showsDoMes.length !== 1 ? "s" : ""} agendado{showsDoMes.length !== 1 ? "s" : ""}
-        </span>
+        <button onClick={() => navSemana(1)} style={iconBtn}><IconChevronRight size={16} /></button>
+        <button
+          onClick={() => setSemanaBase(inicioSemana(hoje))}
+          style={{ ...iconBtn, fontSize: 11, padding: "6px 12px", whiteSpace: "nowrap" }}>
+          Hoje
+        </button>
       </div>
 
-      {showsDoMes.length === 0 ? (
-        <div style={{ textAlign: "center", color: "var(--text3)", padding: 64 }}>
-          <IconImage size={48} />
-          <p style={{ marginTop: 16, fontSize: 14 }}>Nenhum show agendado neste mês.</p>
-        </div>
-      ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 16 }}>
-          {showsDoMes.map(show => {
-            const artista = artistas.find(a => a.id === show.artistaId);
-            const diaSemana = new Date(show.data + "T12:00:00").getDay();
-            const generos = show.generoId
-              ? [show.generoId]
-              : (artista?.generos ?? []);
-            const corPrimaria = generos[0] ? (GENEROS[generos[0]]?.cor ?? "var(--primary)") : "var(--primary)";
+      {/* Grid semanal — scroll horizontal no mobile */}
+      <div style={{ overflowX: "auto", margin: "0 -16px", padding: "0 16px 8px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(130px, 1fr))", gap: 8, minWidth: 700 }}>
 
+          {/* Cabeçalhos */}
+          {dias.map((d, i) => {
+            const dStr = toDateStr(d);
+            const isHoje = dStr === todayStr;
             return (
-              <ShowCard
-                key={show.id}
-                show={show}
-                artista={artista}
-                diaSemana={diaSemana}
-                generos={generos}
-                corPrimaria={corPrimaria}
-              />
+              <div key={i} style={{
+                textAlign: "center", padding: "8px 4px",
+                borderRadius: 8,
+                background: isHoje ? "var(--primary)22" : "transparent",
+                border: isHoje ? "1px solid var(--primary)55" : "1px solid transparent",
+              }}>
+                <div style={{
+                  fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: 1,
+                  color: isHoje ? "var(--primary-light)" : "var(--text3)",
+                }}>
+                  {LABELS_GRID[i]}
+                </div>
+                <div style={{
+                  fontSize: 18, fontWeight: 700,
+                  color: isHoje ? "var(--primary-light)" : "var(--text)",
+                  lineHeight: 1.2,
+                }}>
+                  {d.getDate()}
+                </div>
+                <div style={{ fontSize: 10, color: "var(--text3)" }}>
+                  {d.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "")}
+                </div>
+              </div>
+            );
+          })}
+
+          {/* Colunas de shows */}
+          {dias.map((d, i) => {
+            const dStr = toDateStr(d);
+            const showsDia = showsPorData[dStr] ?? [];
+            const isHoje = dStr === todayStr;
+            return (
+              <div key={i} style={{
+                display: "flex", flexDirection: "column", gap: 8,
+                padding: "4px 0",
+                borderTop: `2px solid ${isHoje ? "var(--primary)66" : "var(--border)"}`,
+              }}>
+                {showsDia.length === 0 ? (
+                  <div style={{
+                    flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
+                    minHeight: 60, color: "var(--border)", fontSize: 18,
+                  }}>
+                    —
+                  </div>
+                ) : (
+                  showsDia.map(show => (
+                    <ShowCard key={show.id} show={show} artistas={artistas} />
+                  ))
+                )}
+              </div>
             );
           })}
         </div>
-      )}
+      </div>
     </div>
   );
 }
 
-function ShowCard({ show, artista, diaSemana, generos, corPrimaria }) {
+function ShowCard({ show, artistas }) {
   const [baixando, setBaixando] = useState(false);
+  const artista = artistas.find(a => a.id === show.artistaId);
+
+  const generos = show.generoId ? [show.generoId] : (artista?.generos ?? []);
+  const corPrimaria = generos[0] ? (GENEROS[generos[0]]?.cor ?? "var(--primary)") : "var(--primary)";
 
   async function baixarFoto() {
     const url = artista?.fotoUrl;
@@ -89,10 +173,9 @@ function ShowCard({ show, artista, diaSemana, generos, corPrimaria }) {
       const resp = await fetch(url);
       const blob = await resp.blob();
       const ext = blob.type.includes("png") ? "png" : "jpg";
-      const nomeArquivo = `${artista.nome} - ${show.data}.${ext}`;
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
-      link.download = nomeArquivo;
+      link.download = `${artista.nome} - ${show.data}.${ext}`;
       link.click();
       URL.revokeObjectURL(link.href);
     } catch {
@@ -104,13 +187,14 @@ function ShowCard({ show, artista, diaSemana, generos, corPrimaria }) {
 
   return (
     <div style={{
-      background: "var(--card)", border: `1px solid ${corPrimaria}44`,
-      borderRadius: 14, overflow: "hidden",
-      display: "flex", flexDirection: "column",
-      boxShadow: `0 2px 12px ${corPrimaria}18`,
+      background: "var(--card)",
+      border: `1px solid ${corPrimaria}44`,
+      borderRadius: 10,
+      overflow: "hidden",
+      boxShadow: `0 1px 6px ${corPrimaria}15`,
     }}>
       {/* Foto */}
-      <div style={{ position: "relative", aspectRatio: "4/3", background: "var(--bg2)", overflow: "hidden" }}>
+      <div style={{ position: "relative", aspectRatio: "3/2", background: "var(--bg2)", overflow: "hidden" }}>
         {artista?.fotoUrl ? (
           <img
             src={artista.fotoUrl}
@@ -118,94 +202,64 @@ function ShowCard({ show, artista, diaSemana, generos, corPrimaria }) {
             style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
           />
         ) : (
-          <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 8, color: "var(--text3)" }}>
-            <IconImage size={40} />
-            <span style={{ fontSize: 11 }}>Sem foto</span>
+          <div style={{
+            width: "100%", height: "100%",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            color: "var(--border)",
+          }}>
+            <IconImage size={28} />
           </div>
         )}
 
-        {/* Badge data sobre a foto */}
+        {/* Horário */}
         <div style={{
-          position: "absolute", top: 10, left: 10,
-          background: "rgba(0,0,0,0.72)", borderRadius: 8,
-          padding: "5px 10px", backdropFilter: "blur(6px)",
+          position: "absolute", bottom: 6, left: 6,
+          background: "rgba(0,0,0,0.7)", borderRadius: 5,
+          padding: "2px 7px", fontSize: 11, fontWeight: 700, color: "#fff",
+          backdropFilter: "blur(4px)",
         }}>
-          <div style={{ color: "#fff", fontWeight: 700, fontSize: 14, lineHeight: 1.2 }}>
-            {show.data.split("-").reverse().join("/")}
-          </div>
-          <div style={{ color: "rgba(255,255,255,0.65)", fontSize: 10 }}>
-            {DIAS_SEMANA[diaSemana]} · {show.horario}
-          </div>
+          {show.horario}
         </div>
 
-        {/* Botão download sobre a foto */}
+        {/* Botão download */}
         {artista?.fotoUrl && (
           <button
             onClick={baixarFoto}
             disabled={baixando}
             title="Baixar foto"
             style={{
-              position: "absolute", top: 10, right: 10,
-              background: "rgba(0,0,0,0.65)", border: "none", borderRadius: 8,
-              padding: "7px 9px", cursor: "pointer", color: "#fff",
-              display: "flex", alignItems: "center", gap: 5, fontSize: 11, fontWeight: 600,
-              backdropFilter: "blur(6px)",
-              opacity: baixando ? 0.6 : 1,
+              position: "absolute", top: 6, right: 6,
+              background: "rgba(0,0,0,0.65)", border: "none", borderRadius: 6,
+              padding: "5px 7px", cursor: "pointer", color: "#fff",
+              display: "flex", alignItems: "center", gap: 4, fontSize: 10, fontWeight: 600,
+              backdropFilter: "blur(4px)",
+              opacity: baixando ? 0.5 : 1,
             }}>
-            <IconDownload size={13} />
+            <IconDownload size={11} />
             {baixando ? "…" : "Baixar"}
           </button>
         )}
       </div>
 
       {/* Info */}
-      <div style={{ padding: "14px 14px 16px", display: "flex", flexDirection: "column", gap: 8 }}>
-        <div style={{ fontWeight: 700, fontSize: 16, color: "var(--text)", lineHeight: 1.2 }}>
-          {artista?.nome ?? "Artista removido"}
+      <div style={{ padding: "8px 9px 10px" }}>
+        <div style={{ fontWeight: 700, fontSize: 12, color: "var(--text)", marginBottom: 4, lineHeight: 1.2 }}>
+          {artista?.nome ?? "?"}
         </div>
-
-        {/* Gêneros */}
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
-          {generos.map(g => {
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+          {generos.slice(0, 2).map(g => {
             const cor = GENEROS[g]?.cor ?? "var(--border)";
             return (
               <span key={g} style={{
                 background: cor + "22", color: cor,
-                border: `1px solid ${cor}55`,
-                borderRadius: 20, padding: "2px 8px", fontSize: 11, fontWeight: 600,
+                border: `1px solid ${cor}44`,
+                borderRadius: 20, padding: "1px 6px", fontSize: 10, fontWeight: 600,
               }}>
                 {GENEROS[g]?.label ?? g}
               </span>
             );
           })}
         </div>
-
-        {/* Formação do show */}
-        {artista?.formacoes && artista.formacoes.length > 0 && (() => {
-          const f = artista.formacoes[show.formacaoIdx ?? 0] ?? artista.formacoes[0];
-          return f ? (
-            <div style={{ fontSize: 12, color: "var(--text3)" }}>
-              {f.nome ? `${f.nome} · ` : ""}{f.integrantes} integrante{f.integrantes !== 1 ? "s" : ""}
-            </div>
-          ) : null;
-        })()}
-
-        {/* Observações */}
-        {show.observacoes && (
-          <div style={{
-            fontSize: 11, color: "var(--text2)", background: "var(--bg2)",
-            borderRadius: 6, padding: "6px 9px", lineHeight: 1.5,
-          }}>
-            {show.observacoes}
-          </div>
-        )}
-
-        {/* Sem foto — link direto */}
-        {!artista?.fotoUrl && (
-          <div style={{ fontSize: 11, color: "var(--text3)", fontStyle: "italic" }}>
-            Nenhuma foto cadastrada para este artista.
-          </div>
-        )}
       </div>
     </div>
   );
