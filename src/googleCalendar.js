@@ -52,12 +52,24 @@ export function revokeGoogleToken(onDone) {
   });
 }
 
-function buildEventBody(show, artista, colorId) {
-  const [h, m] = show.horario.split(":").map(Number);
-  const start = new Date(`${show.data}T${show.horario}:00`);
-  const end = new Date(start.getTime() + 3 * 60 * 60 * 1000); // +3h
+function addHoras(data, horario, horas) {
+  const [h, m] = horario.split(":").map(Number);
+  let totalMin = h * 60 + m + horas * 60;
+  const diasExtra = Math.floor(totalMin / (24 * 60));
+  totalMin = totalMin % (24 * 60);
+  const hh = String(Math.floor(totalMin / 60)).padStart(2, "0");
+  const mm = String(totalMin % 60).padStart(2, "0");
+  if (diasExtra === 0) return { data, horario: `${hh}:${mm}` };
+  const d = new Date(data + "T12:00:00");
+  d.setDate(d.getDate() + diasExtra);
+  return { data: d.toISOString().slice(0, 10), horario: `${hh}:${mm}` };
+}
 
-  const toISO = (d) => d.toISOString().replace(".000Z", "-03:00");
+function buildEventBody(show, artista, colorId) {
+  const fim = addHoras(show.data, show.horario, 3);
+  // Monta string ISO diretamente com offset -03:00 para evitar conversão errada de timezone
+  const startDT = `${show.data}T${show.horario}:00-03:00`;
+  const endDT   = `${fim.data}T${fim.horario}:00-03:00`;
 
   return {
     summary: `🎵 ${artista.nome}`,
@@ -70,8 +82,8 @@ function buildEventBody(show, artista, colorId) {
       `Contato: ${artista.contato ?? ""}`,
     ].filter(Boolean).join("\n"),
     location: "Bar Pé Sujo",
-    start: { dateTime: toISO(start), timeZone: "America/Sao_Paulo" },
-    end:   { dateTime: toISO(end),   timeZone: "America/Sao_Paulo" },
+    start: { dateTime: startDT, timeZone: "America/Sao_Paulo" },
+    end:   { dateTime: endDT,   timeZone: "America/Sao_Paulo" },
     colorId: colorId ?? gcalColorId,
   };
 }
