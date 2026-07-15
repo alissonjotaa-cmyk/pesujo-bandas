@@ -16,6 +16,7 @@ function diasElegiveis(artista) {
 export default function Artistas({ artistas, shows, onAtualizar, onSalvarShow, onAgendar }) {
   const [busca, setBusca] = useState("");
   const [filtroGenero, setFiltroGenero] = useState("");
+  const [filtroStatus, setFiltroStatus] = useState("");
   const [modal, setModal] = useState(null);
   const [modalAgendar, setModalAgendar] = useState(null);
   const [modalCadastroLink, setModalCadastroLink] = useState(false);
@@ -25,8 +26,15 @@ export default function Artistas({ artistas, shows, onAtualizar, onSalvarShow, o
     if (busca) r = r.filter(a => a.nome?.toLowerCase().includes(busca.toLowerCase()) ||
       a.contato?.toLowerCase().includes(busca.toLowerCase()));
     if (filtroGenero) r = r.filter(a => a.generos?.includes(filtroGenero));
-    return r.sort((a, b) => a.nome?.localeCompare(b.nome ?? "") ?? 0);
-  }, [artistas, busca, filtroGenero]);
+    if (filtroStatus) r = r.filter(a => (a.status ?? "ativo") === filtroStatus);
+    return r.sort((a, b) => {
+      // Pendentes sempre no topo
+      const pa = a.status === "pendente" ? 0 : 1;
+      const pb = b.status === "pendente" ? 0 : 1;
+      if (pa !== pb) return pa - pb;
+      return a.nome?.localeCompare(b.nome ?? "") ?? 0;
+    });
+  }, [artistas, busca, filtroGenero, filtroStatus]);
 
   async function salvar(dados) {
     const id = dados.id ?? nanoid();
@@ -76,7 +84,26 @@ export default function Artistas({ artistas, shows, onAtualizar, onSalvarShow, o
           <option value="">Todos os gêneros</option>
           {Object.entries(GENEROS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
         </select>
+        <select value={filtroStatus} onChange={e => setFiltroStatus(e.target.value)} style={inputStyle}>
+          <option value="">Todos os status</option>
+          <option value="pendente">⏳ Pendentes</option>
+          <option value="ativo">✅ Ativos</option>
+        </select>
       </div>
+
+      {/* Contador de pendentes */}
+      {artistas.filter(a => a.status === "pendente").length > 0 && !filtroStatus && (
+        <div
+          onClick={() => setFiltroStatus("pendente")}
+          style={{
+            marginBottom: 14, padding: "8px 14px", borderRadius: 8, cursor: "pointer",
+            background: "#f59e0b18", border: "1px solid #f59e0b55",
+            fontSize: 12, color: "#f59e0b", fontWeight: 600,
+            display: "flex", alignItems: "center", gap: 6,
+          }}>
+          ⏳ {artistas.filter(a => a.status === "pendente").length} cadastro{artistas.filter(a => a.status === "pendente").length > 1 ? "s" : ""} aguardando aprovação — clique para filtrar
+        </div>
+      )}
 
       {/* Lista */}
       {lista.length === 0 ? (
