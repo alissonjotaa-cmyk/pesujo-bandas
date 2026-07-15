@@ -55,7 +55,7 @@ export default function App() {
       if (!c?.gcalClientId) return;
       initGoogleCalendar(c.gcalClientId, (token) => {
         setGcal({ conectado: !!token, gcalId: c.gcalId ?? "primary" });
-      }).then(() => requestGoogleToken()).catch(() => {});
+      }).then(() => requestGoogleToken(true)).catch(() => {}); // silent — sem popup
     });
   }, [user]);
 
@@ -181,14 +181,22 @@ export default function App() {
         {/* Rodapé sidebar */}
         <div style={{ borderTop: "1px solid var(--border)", padding: "10px 0" }}>
           {/* GCal badge */}
-          {gcal.conectado && !collapsed && (
+          {!collapsed && gcal.gcalId && (
             <div style={{
               margin: "0 12px 8px", fontSize: 11,
-              background: "var(--success)15", color: "var(--success)",
-              border: "1px solid var(--success)33", borderRadius: 8,
-              padding: "5px 10px", display: "flex", alignItems: "center", gap: 6,
+              background: gcal.conectado ? "var(--success)15" : "var(--warning)15",
+              color: gcal.conectado ? "var(--success)" : "var(--warning)",
+              border: `1px solid ${gcal.conectado ? "var(--success)33" : "var(--warning)44"}`,
+              borderRadius: 8, padding: "5px 10px",
+              display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6,
             }}>
-              📅 Google Calendar ativo
+              <span>{gcal.conectado ? "📅 Google Calendar ativo" : "📅 GCal desconectado"}</span>
+              {!gcal.conectado && (
+                <button onClick={() => requestGoogleToken(false)}
+                  style={{ background: "none", border: "none", cursor: "pointer", color: "var(--warning)", fontSize: 10, fontWeight: 700, padding: 0, textDecoration: "underline" }}>
+                  Reconectar
+                </button>
+              )}
             </div>
           )}
 

@@ -38,9 +38,10 @@ export async function initGoogleCalendar(clientId, onTokenChange) {
   });
 }
 
-export function requestGoogleToken() {
+// silent=true tenta renovar sem popup; silent=false abre o popup de autorização
+export function requestGoogleToken(silent = false) {
   if (!tokenClient) return;
-  tokenClient.requestAccessToken({ prompt: "" });
+  tokenClient.requestAccessToken({ prompt: silent ? "none" : "" });
 }
 
 export function revokeGoogleToken(onDone) {
