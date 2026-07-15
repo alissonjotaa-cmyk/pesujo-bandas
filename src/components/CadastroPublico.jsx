@@ -125,7 +125,7 @@ export default function CadastroPublico() {
       let fotoPath = "";
       if (fotoFile) {
         try {
-          const ext = fotoFile.type.includes("png") ? "png" : "jpg";
+          const ext = fotoFile.name.split(".").pop()?.toLowerCase() || "jpg";
           fotoPath = `bandas_artistas/${id}/cartaz.${ext}`;
           fotoUrl = await fbUploadFoto(fotoPath, fotoFile, `${form.nome.trim()}.${ext}`);
         } catch (uploadErr) {

@@ -368,7 +368,7 @@ function ModalArtista({ artista, onSalvar, onFechar }) {
         // Remove foto antiga se existir
         if (fotoPath) await fbDeleteFoto(fotoPath);
         const id = form.id ?? nanoid();
-        const ext = fotoFile.type.includes("png") ? "png" : "jpg";
+        const ext = fotoFile.name.split(".").pop()?.toLowerCase() || "jpg";
         fotoPath = `bandas_artistas/${id}/cartaz.${ext}`;
         fotoUrl = await fbUploadFoto(fotoPath, fotoFile, `${form.nome.trim()}.${ext}`);
         resto.id = id;
