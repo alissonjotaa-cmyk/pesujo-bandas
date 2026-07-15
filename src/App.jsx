@@ -29,6 +29,9 @@ export default function App() {
   const [gcal, setGcal] = useState({ conectado: false, gcalId: "primary" });
   const [collapsed, setCollapsed] = useState(false);
   const [agendarArtista, setAgendarArtista] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
 
   useEffect(() => onAuthStateChanged(auth, async (u) => {
     setUser(u || null);
@@ -66,18 +69,29 @@ export default function App() {
     );
   }
 
-  const sw = collapsed ? SIDEBAR_COLLAPSED : SIDEBAR_EXPANDED;
+  const sw = isMobile ? 0 : (collapsed ? SIDEBAR_COLLAPSED : SIDEBAR_EXPANDED);
+  const sidebarVisible = isMobile ? sidebarOpen : true;
 
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
 
+      {/* Overlay escuro no mobile quando sidebar aberta */}
+      {isMobile && sidebarOpen && (
+        <div onClick={() => setSidebarOpen(false)}
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 199 }} />
+      )}
+
       {/* Sidebar */}
       <aside style={{
-        width: sw, minWidth: sw, background: "var(--bg2)",
+        width: isMobile ? SIDEBAR_EXPANDED : sw,
+        minWidth: isMobile ? SIDEBAR_EXPANDED : sw,
+        background: "var(--bg2)",
         borderRight: "1px solid var(--border)",
-        display: "flex", flexDirection: "column",
+        display: sidebarVisible ? "flex" : "none",
+        flexDirection: "column",
         position: "fixed", top: 0, left: 0, bottom: 0,
-        zIndex: 200, transition: "width 0.2s, min-width 0.2s",
+        zIndex: 200,
+        transition: "width 0.2s, min-width 0.2s",
         overflow: "hidden",
       }}>
 
@@ -114,7 +128,7 @@ export default function App() {
           {ABAS.map(({ key, label, icon: Icon }) => {
             const ativo = aba === key;
             return (
-              <button key={key} onClick={() => setAba(key)}
+              <button key={key} onClick={() => { setAba(key); if (isMobile) setSidebarOpen(false); }}
                 title={collapsed ? label : undefined}
                 style={{
                   display: "flex", alignItems: "center", gap: 12,
@@ -196,6 +210,27 @@ export default function App() {
         flex: 1, marginLeft: sw, transition: "margin-left 0.2s",
         minHeight: "100vh", overflowX: "hidden",
       }}>
+        {/* Top bar mobile */}
+        {isMobile && (
+          <div style={{
+            position: "sticky", top: 0, zIndex: 100,
+            display: "flex", alignItems: "center", gap: 12,
+            padding: "12px 16px",
+            background: "var(--bg2)", borderBottom: "1px solid var(--border)",
+          }}>
+            <button onClick={() => setSidebarOpen(o => !o)}
+              style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text)", padding: 4, display: "flex", flexDirection: "column", gap: 4 }}>
+              <span style={{ display: "block", width: 20, height: 2, background: "currentColor", borderRadius: 2 }} />
+              <span style={{ display: "block", width: 20, height: 2, background: "currentColor", borderRadius: 2 }} />
+              <span style={{ display: "block", width: 20, height: 2, background: "currentColor", borderRadius: 2 }} />
+            </button>
+            <img src="/logo-pesujo.png" alt="Pé Sujo" style={{ height: 28, objectFit: "contain" }} />
+            <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text2)", marginLeft: "auto" }}>
+              {ABAS.find(a => a.key === aba)?.label}
+            </span>
+          </div>
+        )}
+
         {aba === "calendario" && (
           <Calendario artistas={artistas} shows={shows} onAtualizar={recarregar}
             gcalConectado={gcal.conectado} gcalId={gcal.gcalId}

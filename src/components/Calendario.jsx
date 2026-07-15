@@ -95,25 +95,29 @@ export default function Calendario({ artistas, shows, onAtualizar, gcalConectado
   }
 
   return (
-    <div style={{ padding: "20px 16px", maxWidth: 1000, margin: "0 auto" }}>
+    <div style={{ padding: "16px 12px", maxWidth: 1000, margin: "0 auto" }}>
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
         <button onClick={() => navMes(-1)} style={iconBtn}><IconChevronLeft size={18} /></button>
-        <h2 style={{ fontSize: 20, fontWeight: 700, flex: 1, textAlign: "center" }}>
+        <h2 style={{ fontSize: 18, fontWeight: 700, flex: 1, textAlign: "center" }}>
           {MESES[mes]} {ano}
         </h2>
         <button onClick={() => navMes(1)} style={iconBtn}><IconChevronRight size={18} /></button>
       </div>
 
+      {/* Grid com scroll horizontal no mobile */}
+      <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch", margin: "0 -12px", padding: "0 12px 4px" }}>
+        <div style={{ minWidth: 480 }}>
+
       {/* Legenda dias */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4, marginBottom: 4 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 3, marginBottom: 3 }}>
         {["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"].map(d => (
           <div key={d} style={{ textAlign: "center", color: "var(--text3)", fontSize: 11, fontWeight: 600, padding: "4px 0" }}>{d}</div>
         ))}
       </div>
 
       {/* Grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 3 }}>
         {Array.from({ length: inicioDiaSemana }).map((_, i) => <div key={`v${i}`} />)}
 
         {Array.from({ length: dias }, (_, i) => {
@@ -140,6 +144,9 @@ export default function Calendario({ artistas, shows, onAtualizar, gcalConectado
           );
         })}
       </div>
+
+        </div>{/* fim minWidth wrapper */}
+      </div>{/* fim scroll wrapper */}
 
       {/* Legenda generos */}
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 20 }}>
@@ -179,7 +186,7 @@ function DiaCell({ dia, dataStr, regra, isHoje, passado, artistas, showDoSlot, s
     <div style={{
       background: isHoje ? "var(--primary)15" : "var(--card)",
       border: isHoje ? "1px solid var(--primary)88" : "1px solid var(--border)",
-      borderRadius: 8, padding: "6px 5px", minHeight: 80,
+      borderRadius: 6, padding: "4px 3px", minHeight: 72,
       opacity: fechado ? 0.35 : 1,
     }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
