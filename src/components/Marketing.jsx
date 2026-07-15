@@ -40,10 +40,10 @@ export default function Marketing({ shows, artistas, publico = false }) {
     });
   }
 
-  const dias = useMemo(() =>
-    ORDEM_GRID.map((_, i) => addDias(semanaBase, i)),
-    [semanaBase]
-  );
+  // 3 semanas: semanaBase, +7, +14
+  const semanas = useMemo(() => [0, 1, 2].map(w =>
+    ORDEM_GRID.map((_, i) => addDias(semanaBase, w * 7 + i))
+  ), [semanaBase]);
 
   const showsPorData = useMemo(() => {
     const idx = {};
@@ -62,20 +62,17 @@ export default function Marketing({ shows, artistas, publico = false }) {
     setSemanaBase(b => addDias(b, dir * 7));
   }
 
-  const inicioStr = toDateStr(dias[0]);
-  const fimStr    = toDateStr(dias[6]);
-  const todayStr  = toDateStr(hoje);
+  const todayStr = toDateStr(hoje);
 
-  // Label do período
-  const mesInicio = dias[0].toLocaleDateString("pt-BR", { month: "short" }).replace(".", "");
-  const mesFim    = dias[6].toLocaleDateString("pt-BR", { month: "short" }).replace(".", "");
-  const anoInicio = dias[0].getFullYear();
-  const anoFim    = dias[6].getFullYear();
-  const periodoLabel = anoInicio === anoFim && mesInicio === mesFim
-    ? `${dias[0].getDate()} – ${dias[6].getDate()} de ${mesInicio} ${anoInicio}`
-    : anoInicio === anoFim
-    ? `${dias[0].getDate()} ${mesInicio} – ${dias[6].getDate()} ${mesFim} ${anoInicio}`
-    : `${dias[0].getDate()} ${mesInicio} ${anoInicio} – ${dias[6].getDate()} ${mesFim} ${anoFim}`;
+  function labelSemana(dias) {
+    const ini = dias[0], fim = dias[6];
+    const mi = ini.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "");
+    const mf = fim.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "");
+    const ai = ini.getFullYear(), af = fim.getFullYear();
+    if (ai === af && mi === mf) return `${ini.getDate()} – ${fim.getDate()} de ${mi} ${ai}`;
+    if (ai === af) return `${ini.getDate()} ${mi} – ${fim.getDate()} ${mf} ${ai}`;
+    return `${ini.getDate()} ${mi} ${ai} – ${fim.getDate()} ${mf} ${af}`;
+  }
 
   return (
     <div style={{ padding: "20px 16px", maxWidth: 1100, margin: "0 auto" }}>
@@ -101,11 +98,11 @@ export default function Marketing({ shows, artistas, publico = false }) {
         )}
       </div>
 
-      {/* Navegação de semana */}
+      {/* Navegação */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
         <button onClick={() => navSemana(-1)} style={iconBtn}><IconChevronLeft size={16} /></button>
         <span style={{ fontWeight: 700, fontSize: 15, flex: 1, textAlign: "center" }}>
-          {periodoLabel}
+          {labelSemana(semanas[0])} — {labelSemana(semanas[2])}
         </span>
         <button onClick={() => navSemana(1)} style={iconBtn}><IconChevronRight size={16} /></button>
         <button
@@ -115,68 +112,61 @@ export default function Marketing({ shows, artistas, publico = false }) {
         </button>
       </div>
 
-      {/* Grid semanal — scroll horizontal no mobile */}
-      <div style={{ overflowX: "auto", margin: "0 -16px", padding: "0 16px 8px" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(130px, 1fr))", gap: 8, minWidth: 700 }}>
+      {/* 3 semanas empilhadas */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+        {semanas.map((dias, wi) => (
+          <div key={wi} style={{ overflowX: "auto", margin: "0 -16px", padding: "0 16px 4px" }}>
+            <div style={{ minWidth: 700 }}>
 
-          {/* Cabeçalhos */}
-          {dias.map((d, i) => {
-            const dStr = toDateStr(d);
-            const isHoje = dStr === todayStr;
-            return (
-              <div key={i} style={{
-                textAlign: "center", padding: "8px 4px",
-                borderRadius: 8,
-                background: isHoje ? "var(--primary)22" : "transparent",
-                border: isHoje ? "1px solid var(--primary)55" : "1px solid transparent",
-              }}>
-                <div style={{
-                  fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: 1,
-                  color: isHoje ? "var(--primary-light)" : "var(--text3)",
-                }}>
-                  {LABELS_GRID[i]}
-                </div>
-                <div style={{
-                  fontSize: 18, fontWeight: 700,
-                  color: isHoje ? "var(--primary-light)" : "var(--text)",
-                  lineHeight: 1.2,
-                }}>
-                  {d.getDate()}
-                </div>
-                <div style={{ fontSize: 10, color: "var(--text3)" }}>
-                  {d.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "")}
-                </div>
+              {/* Label da semana */}
+              <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text3)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>
+                {labelSemana(dias)}
               </div>
-            );
-          })}
 
-          {/* Colunas de shows */}
-          {dias.map((d, i) => {
-            const dStr = toDateStr(d);
-            const showsDia = showsPorData[dStr] ?? [];
-            const isHoje = dStr === todayStr;
-            return (
-              <div key={i} style={{
-                display: "flex", flexDirection: "column", gap: 8,
-                padding: "4px 0",
-                borderTop: `2px solid ${isHoje ? "var(--primary)66" : "var(--border)"}`,
-              }}>
-                {showsDia.length === 0 ? (
-                  <div style={{
-                    flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
-                    minHeight: 60, color: "var(--border)", fontSize: 18,
-                  }}>
-                    —
-                  </div>
-                ) : (
-                  showsDia.map(show => (
-                    <ShowCard key={show.id} show={show} artistas={artistas} />
-                  ))
-                )}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(130px, 1fr))", gap: 8 }}>
+
+                {/* Cabeçalhos dos dias */}
+                {dias.map((d, i) => {
+                  const dStr = toDateStr(d);
+                  const isHoje = dStr === todayStr;
+                  return (
+                    <div key={i} style={{
+                      textAlign: "center", padding: "6px 4px", borderRadius: 8,
+                      background: isHoje ? "var(--primary)22" : "transparent",
+                      border: isHoje ? "1px solid var(--primary)55" : "1px solid transparent",
+                    }}>
+                      <div style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: 1, color: isHoje ? "var(--primary-light)" : "var(--text3)" }}>
+                        {LABELS_GRID[i]}
+                      </div>
+                      <div style={{ fontSize: 17, fontWeight: 700, color: isHoje ? "var(--primary-light)" : "var(--text)", lineHeight: 1.2 }}>
+                        {d.getDate()}
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* Cards de shows */}
+                {dias.map((d, i) => {
+                  const dStr = toDateStr(d);
+                  const showsDia = showsPorData[dStr] ?? [];
+                  const isHoje = dStr === todayStr;
+                  return (
+                    <div key={i} style={{
+                      display: "flex", flexDirection: "column", gap: 8, padding: "4px 0",
+                      borderTop: `2px solid ${isHoje ? "var(--primary)66" : "var(--border)"}`,
+                    }}>
+                      {showsDia.length === 0 ? (
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 56, color: "var(--border)", fontSize: 16 }}>—</div>
+                      ) : (
+                        showsDia.map(show => <ShowCard key={show.id} show={show} artistas={artistas} />)
+                      )}
+                    </div>
+                  );
+                })}
               </div>
-            );
-          })}
-        </div>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
