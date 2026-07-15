@@ -172,7 +172,7 @@ function ArtistaCard({ artista, onEdit, onDelete, onAgendar, onAprovar }) {
             <span style={{ fontSize: 10, color: "var(--text3)" }}>Foto indisponível</span>
           </div>
           {/* Botão download */}
-          <a href={artista.fotoUrl} download target="_blank" rel="noopener noreferrer"
+          <a href={artista.fotoUrl} download={`${artista.nome}.jpg`} target="_blank" rel="noopener noreferrer"
             title="Baixar foto"
             style={{
               position: "absolute", bottom: 8, right: 8,
