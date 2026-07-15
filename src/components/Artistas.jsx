@@ -34,6 +34,11 @@ export default function Artistas({ artistas, shows, onAtualizar, onAgendar }) {
     setModal(null);
   }
 
+  async function aprovar(artista) {
+    await fbSet("bandas_artistas", artista.id, { ...artista, status: "ativo" });
+    onAtualizar();
+  }
+
   async function excluir(id) {
     if (!window.confirm("Excluir este artista?")) return;
     await fbDel("bandas_artistas", id);
@@ -78,6 +83,7 @@ export default function Artistas({ artistas, shows, onAtualizar, onAgendar }) {
               onEdit={() => setModal(a)}
               onDelete={() => excluir(a.id)}
               onAgendar={() => setModalAgendar(a)}
+              onAprovar={() => aprovar(a)}
             />
           ))}
         </div>
@@ -133,17 +139,29 @@ function BotaoCopiarPix({ pix }) {
   );
 }
 
-function ArtistaCard({ artista, onEdit, onDelete, onAgendar }) {
+function ArtistaCard({ artista, onEdit, onDelete, onAgendar, onAprovar }) {
   const dias = diasElegiveis(artista);
+  const pendente = artista.status === "pendente";
   return (
     <div style={{
-      background: "var(--card)", border: "1px solid var(--border)",
+      background: "var(--card)",
+      border: `1px solid ${pendente ? "#f59e0b88" : "var(--border)"}`,
       borderRadius: 12, overflow: "hidden", display: "flex", flexDirection: "column",
     }}>
+      {/* Badge pendente */}
+      {pendente && (
+        <div style={{ background: "#f59e0b22", borderBottom: "1px solid #f59e0b44", padding: "6px 14px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span style={{ fontSize: 11, color: "#f59e0b", fontWeight: 700 }}>⏳ Cadastro pendente de aprovação</span>
+          <button onClick={onAprovar} style={{ background: "#10b98122", border: "1px solid #10b981", borderRadius: 6, padding: "3px 10px", fontSize: 11, fontWeight: 700, color: "#10b981", cursor: "pointer" }}>
+            Aprovar
+          </button>
+        </div>
+      )}
       {/* Cartaz / foto */}
       {artista.fotoUrl && (
         <div style={{ width: "100%", height: 160, overflow: "hidden", position: "relative" }}>
           <img src={artista.fotoUrl} alt={artista.nome}
+            onError={e => { e.target.style.display = "none"; }}
             style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         </div>
       )}
@@ -177,13 +195,19 @@ function ArtistaCard({ artista, onEdit, onDelete, onAgendar }) {
       </div>
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-        {artista.generos?.map(g => (
-          <span key={g} style={{
-            background: GENEROS[g]?.cor + "22", color: GENEROS[g]?.cor,
-            border: `1px solid ${GENEROS[g]?.cor}44`,
-            borderRadius: 20, padding: "2px 8px", fontSize: 11, fontWeight: 600,
-          }}>{GENEROS[g]?.label ?? g}</span>
-        ))}
+        {artista.generos?.map(g => {
+          const gen = GENEROS[g];
+          const label = gen?.label ?? (g === "voz_violao" ? null : g);
+          if (!label) return null;
+          const cor = gen?.cor ?? "#6b7280";
+          return (
+            <span key={g} style={{
+              background: cor + "22", color: cor,
+              border: `1px solid ${cor}44`,
+              borderRadius: 20, padding: "2px 8px", fontSize: 11, fontWeight: 600,
+            }}>{label}{artista.outroGenero && g === "outro" ? `: ${artista.outroGenero}` : ""}</span>
+          );
+        })}
       </div>
 
       {/* Formações */}
