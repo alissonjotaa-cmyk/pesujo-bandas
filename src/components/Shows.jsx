@@ -62,7 +62,7 @@ export default function Shows({ shows, artistas, onAtualizar, onSalvarShow }) {
       }
       grupo.shows.push(show);
     });
-    return grupos.sort((a, b) => b.chave.localeCompare(a.chave));
+    return grupos.sort((a, b) => a.chave.localeCompare(b.chave));
   }, [lista]);
 
   const mesesDisponiveis = useMemo(() => {
