@@ -13,7 +13,7 @@ function diasElegiveis(artista) {
     .map(([, r]) => r.nome);
 }
 
-export default function Artistas({ artistas, onAtualizar, onAgendar }) {
+export default function Artistas({ artistas, shows, onAtualizar, onAgendar }) {
   const [busca, setBusca] = useState("");
   const [filtroGenero, setFiltroGenero] = useState("");
   const [modal, setModal] = useState(null); // null | "novo" | artista
@@ -93,6 +93,7 @@ export default function Artistas({ artistas, onAtualizar, onAgendar }) {
       {modalAgendar && (
         <ModalAgendarShow
           artista={modalAgendar}
+          shows={shows ?? []}
           onFechar={() => setModalAgendar(null)}
           onSalvo={() => { onAtualizar(); setModalAgendar(null); }}
         />
@@ -459,7 +460,7 @@ function ModalArtista({ artista, onSalvar, onFechar }) {
   );
 }
 
-function ModalAgendarShow({ artista, onFechar, onSalvo }) {
+function ModalAgendarShow({ artista, shows, onFechar, onSalvo }) {
   const hoje = new Date();
   const [ano, setAno] = useState(hoje.getFullYear());
   const [mes, setMes] = useState(hoje.getMonth());
@@ -470,6 +471,17 @@ function ModalAgendarShow({ artista, onFechar, onSalvo }) {
   const inicioDia = primeiroDiaSemana(ano, mes);
   const todayStr = hoje.toISOString().slice(0, 10);
   const formacoes = getFormacoes(artista);
+
+  // índice de shows existentes por "data|horario"
+  const showsIdx = useMemo(() => {
+    const idx = {};
+    shows.forEach(s => { if (s.data && s.horario) idx[`${s.data}|${s.horario}`] = true; });
+    return idx;
+  }, [shows]);
+
+  function temConflito(data, horario) {
+    return !!horario && showsIdx[`${data}|${horario}`];
+  }
 
   function dataStr(dia) {
     return `${ano}-${String(mes + 1).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
@@ -527,6 +539,7 @@ function ModalAgendarShow({ artista, onFechar, onSalvo }) {
   }
 
   const datasOrdenadas = Object.keys(selecionadas).sort();
+  const temConflitos = datasOrdenadas.some(d => temConflito(d, selecionadas[d]?.horario));
 
   return (
     <div style={overlay} onClick={e => e.target === e.currentTarget && onFechar()}>
@@ -562,14 +575,17 @@ function ModalAgendarShow({ artista, onFechar, onSalvo }) {
             const fechado = regra?.fechado;
             const sel = !!selecionadas[d];
             const passado = d < todayStr;
+            const cfgDia = selecionadas[d];
+            const conflito = sel && temConflito(d, cfgDia?.horario);
             return (
-              <button key={dia} type="button" onClick={() => !passado && toggleData(dia)}
+              <button key={dia} type="button" onClick={() => !passado && !fechado && toggleData(dia)}
+                title={conflito ? "Horário já ocupado" : undefined}
                 style={{
                   padding: "6px 2px", borderRadius: 6, fontSize: 12, fontWeight: sel ? 700 : 400,
                   textAlign: "center", cursor: fechado || passado ? "default" : "pointer",
-                  background: sel ? "var(--primary)" : "var(--bg2)",
-                  border: `1px solid ${sel ? "var(--primary)" : "var(--border)"}`,
-                  color: sel ? "#fff" : fechado || passado ? "var(--text3)" : "var(--text)",
+                  background: conflito ? "#ef444422" : sel ? "var(--primary)" : "var(--bg2)",
+                  border: `1px solid ${conflito ? "#ef4444" : sel ? "var(--primary)" : "var(--border)"}`,
+                  color: conflito ? "#ef4444" : sel ? "#fff" : fechado || passado ? "var(--text3)" : "var(--text)",
                   opacity: fechado || passado ? 0.35 : 1,
                 }}>
                 {dia}
@@ -604,15 +620,20 @@ function ModalAgendarShow({ artista, onFechar, onSalvo }) {
                   <div>
                     <div style={{ fontSize: 10, color: "var(--text3)", marginBottom: 3 }}>Horário</div>
                     <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-                      {regra?.slots?.map(s => (
-                        <button key={s} type="button" onClick={() => setDadoData(d, "horario", s)}
-                          style={{
-                            borderRadius: 6, padding: "3px 8px", fontSize: 11, cursor: "pointer", fontWeight: 600,
-                            background: cfg.horario === s ? "var(--primary)33" : "var(--bg3)",
-                            border: `1px solid ${cfg.horario === s ? "var(--primary)" : "var(--border)"}`,
-                            color: cfg.horario === s ? "var(--primary-light)" : "var(--text2)",
-                          }}>{s}</button>
-                      ))}
+                      {regra?.slots?.map(s => {
+                        const ocupado = temConflito(d, s);
+                        const ativo = cfg.horario === s;
+                        return (
+                          <button key={s} type="button" onClick={() => setDadoData(d, "horario", s)}
+                            title={ocupado ? "Horário já ocupado" : undefined}
+                            style={{
+                              borderRadius: 6, padding: "3px 8px", fontSize: 11, cursor: "pointer", fontWeight: 600,
+                              background: ocupado ? "#ef444422" : ativo ? "var(--primary)33" : "var(--bg3)",
+                              border: `1px solid ${ocupado ? "#ef4444" : ativo ? "var(--primary)" : "var(--border)"}`,
+                              color: ocupado ? "#ef4444" : ativo ? "var(--primary-light)" : "var(--text2)",
+                            }}>{s}{ocupado ? " ⚠️" : ""}</button>
+                        );
+                      })}
                       <input type="time" value={cfg.horario}
                         onChange={e => setDadoData(d, "horario", e.target.value)}
                         style={{ ...inputStyle, fontSize: 11, padding: "3px 6px", width: 90 }} />
@@ -686,9 +707,9 @@ function ModalAgendarShow({ artista, onFechar, onSalvo }) {
 
         <div style={{ display: "flex", gap: 10 }}>
           <button onClick={onFechar} style={btnSecondary} disabled={salvando}>Cancelar</button>
-          <button onClick={salvar} disabled={!datasOrdenadas.length || salvando}
-            style={{ ...btnPrimary, flex: 1, opacity: !datasOrdenadas.length ? 0.5 : 1 }}>
-            {salvando ? "Salvando…" : `Confirmar ${datasOrdenadas.length > 1 ? `${datasOrdenadas.length} shows` : "show"}`}
+          <button onClick={salvar} disabled={!datasOrdenadas.length || salvando || temConflitos}
+            style={{ ...btnPrimary, flex: 1, opacity: !datasOrdenadas.length || temConflitos ? 0.5 : 1 }}>
+            {salvando ? "Salvando…" : temConflitos ? "⚠️ Horário já Agendado" : `Confirmar ${datasOrdenadas.length > 1 ? `${datasOrdenadas.length} shows` : "show"}`}
           </button>
         </div>
       </div>

@@ -203,7 +203,7 @@ export default function App() {
         )}
         {aba === "shows" && <Shows shows={shows} artistas={artistas} onAtualizar={recarregar} />}
         {aba === "artistas" && (
-          <Artistas artistas={artistas} onAtualizar={recarregar}
+          <Artistas artistas={artistas} shows={shows} onAtualizar={recarregar}
             onAgendar={artista => { setAgendarArtista(artista); setAba("calendario"); }} />
         )}
         {aba === "config" && <ConfigGeral onGcalChange={setGcal} />}
