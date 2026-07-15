@@ -169,8 +169,12 @@ export default function CadastroPublico() {
 
       setEnviado(true);
     } catch (err) {
-      setErro("Erro ao enviar. Tente novamente.");
       console.error(err);
+      if (err?.code === "permission-denied") {
+        setErro("Sem permissão para enviar. Avise o administrador para atualizar as regras do banco de dados.");
+      } else {
+        setErro(`Erro ao enviar: ${err?.message ?? "Tente novamente."}`);
+      }
     } finally {
       setEnviando(false);
     }
