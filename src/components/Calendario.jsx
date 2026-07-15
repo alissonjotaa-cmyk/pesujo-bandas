@@ -257,10 +257,7 @@ function DiaCell({ dia, dataStr, regra, isHoje, passado, artistas, showDoSlot, s
 }
 
 function ModalShow({ slot, artistas, gcalConectado, gcalId, onSalvar, onExcluir, onFechar }) {
-  const { data, horario: horarioInicial, show, customHorario, preArtista } = slot;
-  const diaSemana = new Date(data + "T12:00:00").getDay();
-  const elegíveis = artistasElegiveisParaSlot(artistas, data);
-  const regra = REGRAS_DIA[diaSemana];
+  const { data: dataInicial, horario: horarioInicial, show, customHorario, preArtista } = slot;
 
   const artistaInicial = preArtista ?? (show?.artistaId ? artistas.find(a => a.id === show.artistaId) : null);
   const primeiraFormacaoInicial = artistaInicial ? getFormacoes(artistaInicial)[0] : null;
@@ -274,12 +271,16 @@ function ModalShow({ slot, artistas, gcalConectado, gcalId, onSalvar, onExcluir,
     observacoes: show?.observacoes ?? "",
     id: show?.id ?? undefined,
     gcalEventId: show?.gcalEventId ?? undefined,
-    data,
+    data: dataInicial,
     horario: horarioInicial ?? "",
   });
 
+  // Recalcula diaSemana/regra sempre que a data mudar
+  const diaSemana = new Date(form.data + "T12:00:00").getDay();
+  const elegíveis = artistasElegiveisParaSlot(artistas, form.data);
+  const regra = REGRAS_DIA[diaSemana];
+
   const artistaSel = artistas.find(a => a.id === form.artistaId);
-  // Horário é editável se veio de "novo horário" OU se o usuário quiser alterar
   const [editarHorario, setEditarHorario] = useState(!!customHorario || !horarioInicial);
 
   function submit(e) {
@@ -292,11 +293,17 @@ function ModalShow({ slot, artistas, gcalConectado, gcalId, onSalvar, onExcluir,
     <div style={overlay} onClick={e => e.target === e.currentTarget && onFechar()}>
       <div style={modalBox}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
-          <div>
-            <h3 style={{ fontWeight: 700 }}>
-              {["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"][diaSemana]}, {data.split("-").reverse().join("/")}
+          <div style={{ flex: 1, marginRight: 12 }}>
+            <h3 style={{ fontWeight: 700, marginBottom: 6 }}>
+              {["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"][diaSemana]}, {form.data.split("-").reverse().join("/")}
             </h3>
-            <p style={{ color: "var(--text3)", fontSize: 12, marginTop: 2 }}>{regra?.descricao}</p>
+            <input
+              type="date"
+              value={form.data}
+              onChange={e => setForm(f => ({ ...f, data: e.target.value, horario: "" }))}
+              style={{ ...inputStyle, fontSize: 12, padding: "6px 10px", width: "auto" }}
+            />
+            <p style={{ color: "var(--text3)", fontSize: 12, marginTop: 6 }}>{regra?.descricao}</p>
           </div>
           <button onClick={onFechar} style={{ ...iconBtn, marginTop: -4 }}><IconX size={16} /></button>
         </div>
