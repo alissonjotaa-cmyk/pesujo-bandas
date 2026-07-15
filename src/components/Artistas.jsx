@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef } from "react";
 import { fbSet, fbDel, fbUploadFoto, fbDeleteFoto } from "../firebase";
 import { GENEROS, REGRAS_DIA, MESES, getFormacoes, artistaElegivelParaDia } from "../regras";
-import { IconPlus, IconEdit, IconTrash, IconSearch, IconMic, IconPhone, IconCheck, IconX, IconCalendar, IconChevronLeft, IconChevronRight } from "../icons";
+import { IconPlus, IconEdit, IconTrash, IconSearch, IconMic, IconPhone, IconCheck, IconX, IconCalendar, IconChevronLeft, IconChevronRight, IconLink } from "../icons";
 import { nanoid, diasNoMes, primeiroDiaSemana } from "../utils";
 
 const MAX_FORMACOES = 3;
@@ -16,8 +16,9 @@ function diasElegiveis(artista) {
 export default function Artistas({ artistas, shows, onAtualizar, onAgendar }) {
   const [busca, setBusca] = useState("");
   const [filtroGenero, setFiltroGenero] = useState("");
-  const [modal, setModal] = useState(null); // null | "novo" | artista
-  const [modalAgendar, setModalAgendar] = useState(null); // artista ou null
+  const [modal, setModal] = useState(null);
+  const [modalAgendar, setModalAgendar] = useState(null);
+  const [modalCadastroLink, setModalCadastroLink] = useState(false);
 
   const lista = useMemo(() => {
     let r = [...artistas];
@@ -50,9 +51,15 @@ export default function Artistas({ artistas, shows, onAtualizar, onAgendar }) {
       {/* Cabeçalho */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, flexWrap: "wrap", gap: 12 }}>
         <h2 style={{ fontSize: 20, fontWeight: 700 }}>🎤 Artistas</h2>
-        <button onClick={() => setModal("novo")} style={btnPrimary}>
-          <IconPlus size={16} /> Novo artista
-        </button>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <button onClick={() => setModalCadastroLink(true)}
+            style={{ ...btnSecondary, display: "flex", alignItems: "center", gap: 6, fontSize: 13 }}>
+            <IconLink size={14} /> Cadastro Online
+          </button>
+          <button onClick={() => setModal("novo")} style={btnPrimary}>
+            <IconPlus size={16} /> Novo artista
+          </button>
+        </div>
       </div>
 
       {/* Filtros */}
@@ -103,6 +110,9 @@ export default function Artistas({ artistas, shows, onAtualizar, onAgendar }) {
           onFechar={() => setModalAgendar(null)}
           onSalvo={() => { onAtualizar(); setModalAgendar(null); }}
         />
+      )}
+      {modalCadastroLink && (
+        <ModalCadastroLink onFechar={() => setModalCadastroLink(false)} />
       )}
     </div>
   );
@@ -846,6 +856,60 @@ function ModalAgendarShow({ artista, shows, onFechar, onSalvo }) {
             style={{ ...btnPrimary, flex: 1, opacity: !datasOrdenadas.length || temConflitos ? 0.5 : 1 }}>
             {salvando ? "Salvando…" : temConflitos ? "⚠️ Horário já Agendado" : `Confirmar ${datasOrdenadas.length > 1 ? `${datasOrdenadas.length} shows` : "show"}`}
           </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ModalCadastroLink({ onFechar }) {
+  const [copiado, setCopiado] = useState(false);
+  const url = `${window.location.origin}/cadastro`;
+  const msgWpp = `Olá! Para se cadastrar como artista no Bar Pé Sujo e concorrer a shows, acesse o link:\n${url}`;
+
+  function copiar() {
+    navigator.clipboard.writeText(url);
+    setCopiado(true);
+    setTimeout(() => setCopiado(false), 2000);
+  }
+
+  return (
+    <div style={overlay} onClick={e => e.target === e.currentTarget && onFechar()}>
+      <div style={{ ...modalBox, maxWidth: 420 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+          <h3 style={{ fontWeight: 700 }}>🔗 Cadastro Online</h3>
+          <button onClick={onFechar} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text3)" }}>
+            <IconX size={16} />
+          </button>
+        </div>
+
+        <p style={{ color: "var(--text2)", fontSize: 13, marginBottom: 16, lineHeight: 1.6 }}>
+          Envie este link para artistas se cadastrarem diretamente. O cadastro ficará pendente até você aprovar.
+        </p>
+
+        <div style={{ background: "var(--bg2)", border: "1px solid var(--border)", borderRadius: 8, padding: "10px 12px", marginBottom: 16, fontSize: 12, color: "var(--text2)", wordBreak: "break-all" }}>
+          {url}
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <button onClick={copiar}
+            style={{ ...btnSecondary, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+            {copiado ? <><IconCheck size={14} /> Link copiado!</> : <><IconLink size={14} /> Copiar link</>}
+          </button>
+
+          <a href={`https://wa.me/?text=${encodeURIComponent(msgWpp)}`}
+            target="_blank" rel="noopener noreferrer"
+            style={{
+              background: "#25d366", color: "#fff", border: "none", borderRadius: 8,
+              padding: "10px 18px", fontWeight: 700, cursor: "pointer", fontSize: 14,
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+              textDecoration: "none",
+            }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.855L.057 23.527a.5.5 0 0 0 .609.63l5.975-1.56A11.945 11.945 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.891 0-3.667-.523-5.184-1.433l-.37-.223-3.844 1.004 1.024-3.736-.242-.386A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+            Enviar pelo WhatsApp
+          </a>
+
+          <button onClick={onFechar} style={{ ...btnSecondary, textAlign: "center" }}>Fechar</button>
         </div>
       </div>
     </div>
