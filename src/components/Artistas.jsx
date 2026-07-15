@@ -504,7 +504,7 @@ function ModalArtista({ artista, onSalvar, onFechar }) {
                   <span>Selecionar cartaz / foto</span>
                 </button>
               )}
-              <input ref={fileRef} type="file" accept="image/*"
+              <input ref={fileRef} type="file" accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
                 onChange={onFotoChange} style={{ display: "none" }} />
               {!fotoPreview && (
                 <button type="button" onClick={() => fileRef.current?.click()}

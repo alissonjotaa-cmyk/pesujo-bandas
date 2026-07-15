@@ -310,7 +310,7 @@ export default function CadastroPublico() {
                 <span style={{ fontSize: 18 }}>🖼️</span> Selecionar foto ou cartaz
               </button>
             )}
-            <input ref={fileRef} type="file" accept="image/*" onChange={onFotoChange} style={{ display: "none" }} />
+            <input ref={fileRef} type="file" accept="image/jpeg,image/jpg,image/png,image/webp,image/gif" onChange={onFotoChange} style={{ display: "none" }} />
           </Field>
 
           <Field label="Observações / Rider técnico">
