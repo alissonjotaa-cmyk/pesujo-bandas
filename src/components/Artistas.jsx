@@ -159,10 +159,30 @@ function ArtistaCard({ artista, onEdit, onDelete, onAgendar, onAprovar }) {
       )}
       {/* Cartaz / foto */}
       {artista.fotoUrl && (
-        <div style={{ width: "100%", height: 160, overflow: "hidden", position: "relative" }}>
+        <div style={{ width: "100%", height: 160, overflow: "hidden", position: "relative", background: "var(--bg3)" }}>
           <img src={artista.fotoUrl} alt={artista.nome}
-            onError={e => { e.target.style.display = "none"; }}
+            onError={e => {
+              e.target.style.display = "none";
+              e.target.nextSibling.style.display = "flex";
+            }}
             style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          {/* Fallback quando foto quebra */}
+          <div style={{ display: "none", position: "absolute", inset: 0, alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 6 }}>
+            <span style={{ fontSize: 28 }}>🖼️</span>
+            <span style={{ fontSize: 10, color: "var(--text3)" }}>Foto indisponível</span>
+          </div>
+          {/* Botão download */}
+          <a href={artista.fotoUrl} download target="_blank" rel="noopener noreferrer"
+            title="Baixar foto"
+            style={{
+              position: "absolute", bottom: 8, right: 8,
+              background: "rgba(0,0,0,0.6)", border: "none", borderRadius: 6,
+              padding: "5px 9px", cursor: "pointer", color: "#fff",
+              fontSize: 11, fontWeight: 600, textDecoration: "none",
+              display: "flex", alignItems: "center", gap: 4,
+            }}>
+            ⬇ Baixar foto
+          </a>
         </div>
       )}
       <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 10 }}>
