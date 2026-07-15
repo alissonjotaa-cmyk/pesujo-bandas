@@ -53,9 +53,12 @@ export function fbListen(col, callback, ...queryConstraints) {
   });
 }
 
-export async function fbUploadFoto(path, file) {
+export async function fbUploadFoto(path, file, nomeDownload) {
   const r = ref(storage, path);
-  await uploadBytes(r, file);
+  const metadata = nomeDownload
+    ? { contentDisposition: `attachment; filename="${nomeDownload}"` }
+    : undefined;
+  await uploadBytes(r, file, metadata);
   return getDownloadURL(r);
 }
 

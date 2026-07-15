@@ -127,7 +127,7 @@ export default function CadastroPublico() {
         try {
           const ext = fotoFile.type.includes("png") ? "png" : "jpg";
           fotoPath = `bandas_artistas/${id}/cartaz.${ext}`;
-          fotoUrl = await fbUploadFoto(fotoPath, fotoFile);
+          fotoUrl = await fbUploadFoto(fotoPath, fotoFile, `${form.nome.trim()}.${ext}`);
         } catch (uploadErr) {
           console.warn("Upload da foto falhou:", uploadErr.message);
           // Continua sem foto — o cadastro é salvo normalmente

@@ -370,7 +370,7 @@ function ModalArtista({ artista, onSalvar, onFechar }) {
         const id = form.id ?? nanoid();
         const ext = fotoFile.type.includes("png") ? "png" : "jpg";
         fotoPath = `bandas_artistas/${id}/cartaz.${ext}`;
-        fotoUrl = await fbUploadFoto(fotoPath, fotoFile);
+        fotoUrl = await fbUploadFoto(fotoPath, fotoFile, `${form.nome.trim()}.${ext}`);
         resto.id = id;
       } else if (!fotoPreview && fotoPath) {
         // Foto removida pelo usuário
