@@ -158,8 +158,14 @@ export default function ConfigGeral({ onGcalChange }) {
                 body: <>Volte em <strong>Tela de consentimento OAuth → Usuários de teste</strong> e adicione o e-mail da conta Google que vai autorizar o calendário. Isso é necessário enquanto o app estiver em modo de teste.</>
               },
               {
-                n: 9, title: "Salve e conecte",
-                body: <>Cole o Client ID no campo acima, clique em <strong>Salvar configurações</strong> e depois em <strong>Conectar Google Calendar</strong>. Uma janela do Google abrirá pedindo autorização — aceite e escolha o calendário desejado.</>
+                n: 9, title: "Salve e conecte aqui mesmo nesta tela",
+                body: <>
+                  Role esta página para cima até o campo <strong>"OAuth Client ID (Google Cloud)"</strong>.<br />
+                  Cole o código copiado no passo anterior (termina em <em>.apps.googleusercontent.com</em>).<br />
+                  Clique em <strong>"Salvar configurações"</strong> e logo em seguida em <strong>"Conectar Google Calendar"</strong>.<br />
+                  Uma janela pop-up do Google abrirá pedindo autorização — clique na sua conta e permita o acesso.<br />
+                  Após autorizar, o botão sumirá e aparecerá <em>"Google Calendar conectado"</em> em verde. Pronto!
+                </>
               },
             ].map(({ n, title, body }) => (
               <div key={n} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
