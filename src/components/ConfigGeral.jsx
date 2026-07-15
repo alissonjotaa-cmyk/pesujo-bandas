@@ -119,15 +119,67 @@ export default function ConfigGeral({ onGcalChange }) {
 
         {/* Instruções */}
         <details style={{ marginTop: 20 }}>
-          <summary style={{ color: "var(--text2)", fontSize: 12, cursor: "pointer" }}>Como obter o Client ID?</summary>
-          <ol style={{ color: "var(--text3)", fontSize: 12, marginTop: 8, paddingLeft: 18, lineHeight: 1.8 }}>
-            <li>Acesse <strong>console.cloud.google.com</strong></li>
-            <li>Crie um projeto (ex: "Pé Sujo Bandas")</li>
-            <li>Ative a <strong>Google Calendar API</strong></li>
-            <li>Em "Credenciais", crie um <strong>ID do cliente OAuth 2.0</strong> → tipo: <em>Aplicativo da Web</em></li>
-            <li>Adicione a URL do Vercel em <strong>Origens JavaScript autorizadas</strong></li>
-            <li>Cole o Client ID acima e clique em Salvar + Conectar</li>
-          </ol>
+          <summary style={{ color: "var(--text2)", fontSize: 12, cursor: "pointer", userSelect: "none" }}>
+            📋 Passo a passo: Como conectar ao Google Calendar
+          </summary>
+          <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 10 }}>
+
+            {[
+              {
+                n: 1, title: "Acesse o Google Cloud Console",
+                body: <>Abra <strong>console.cloud.google.com</strong> e faça login com a conta Google que será usada para os eventos do bar.</>
+              },
+              {
+                n: 2, title: "Crie um projeto",
+                body: <>No topo da página, clique em <strong>"Selecionar projeto" → "Novo projeto"</strong>. Dê o nome <em>"Pé Sujo Bandas"</em> e clique em <strong>Criar</strong>. Aguarde alguns segundos e selecione o projeto recém-criado.</>
+              },
+              {
+                n: 3, title: "Ative a Google Calendar API",
+                body: <>No menu lateral, vá em <strong>APIs e serviços → Biblioteca</strong>. Pesquise por <em>"Google Calendar API"</em>, clique nela e depois em <strong>Ativar</strong>.</>
+              },
+              {
+                n: 4, title: "Configure a tela de consentimento OAuth",
+                body: <>Vá em <strong>APIs e serviços → Tela de consentimento OAuth</strong>. Escolha <strong>Externo</strong> e clique em Criar. Preencha apenas o <em>Nome do app</em> (ex: Pé Sujo Bandas) e o <em>E-mail de suporte</em>. Clique em <strong>Salvar e continuar</strong> nas próximas telas sem alterar nada.</>
+              },
+              {
+                n: 5, title: "Crie as credenciais OAuth",
+                body: <>Vá em <strong>APIs e serviços → Credenciais</strong>. Clique em <strong>"Criar credenciais" → "ID do cliente OAuth"</strong>. Em <em>Tipo de aplicativo</em>, selecione <strong>Aplicativo da Web</strong>. Dê um nome (ex: "Pé Sujo Web").</>
+              },
+              {
+                n: 6, title: "Adicione a URL autorizada",
+                body: <>Em <strong>Origens JavaScript autorizadas</strong>, clique em <em>"Adicionar URI"</em> e cole a URL do seu site no Vercel (ex: <code style={{ background: "var(--bg3)", padding: "1px 5px", borderRadius: 4 }}>https://pesujo-bandas.vercel.app</code>). Se tiver domínio próprio, adicione também. Clique em <strong>Criar</strong>.</>
+              },
+              {
+                n: 7, title: "Copie o Client ID",
+                body: <>Uma janela exibirá o <strong>Client ID</strong> — um código terminado em <em>.apps.googleusercontent.com</em>. Copie-o e cole no campo acima.</>
+              },
+              {
+                n: 8, title: "Adicione seu e-mail como usuário de teste",
+                body: <>Volte em <strong>Tela de consentimento OAuth → Usuários de teste</strong> e adicione o e-mail da conta Google que vai autorizar o calendário. Isso é necessário enquanto o app estiver em modo de teste.</>
+              },
+              {
+                n: 9, title: "Salve e conecte",
+                body: <>Cole o Client ID no campo acima, clique em <strong>Salvar configurações</strong> e depois em <strong>Conectar Google Calendar</strong>. Uma janela do Google abrirá pedindo autorização — aceite e escolha o calendário desejado.</>
+              },
+            ].map(({ n, title, body }) => (
+              <div key={n} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                <span style={{
+                  flexShrink: 0, width: 22, height: 22, borderRadius: "50%",
+                  background: "var(--primary)33", color: "var(--primary-light)",
+                  fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center",
+                }}>{n}</span>
+                <div style={{ fontSize: 12, color: "var(--text2)", lineHeight: 1.65 }}>
+                  <strong style={{ color: "var(--text)", display: "block", marginBottom: 2 }}>{title}</strong>
+                  {body}
+                </div>
+              </div>
+            ))}
+
+            <div style={{ background: "var(--warning)15", border: "1px solid var(--warning)44", borderRadius: 8, padding: "10px 12px", fontSize: 11, color: "var(--text2)", lineHeight: 1.6, marginTop: 4 }}>
+              ⚠️ <strong>Importante:</strong> a janela de autorização do Google pode exibir um aviso de "app não verificado". Clique em <em>"Avançado" → "Acessar Pé Sujo Bandas (não seguro)"</em> para prosseguir — isso é normal para apps internos ainda não publicados na Google.
+            </div>
+
+          </div>
         </details>
       </section>
 
