@@ -98,14 +98,27 @@ export default function CadastroPublico() {
     setForm(f => ({ ...f, formacoes: f.formacoes.filter((_, i) => i !== idx) }));
   }
 
-  function onFotoChange(e) {
+  async function onFotoChange(e) {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) { setErro("Imagem muito grande. Máximo 5 MB."); return; }
     const ext = file.name.split(".").pop()?.toLowerCase();
     const isHeic = ext === "heic" || ext === "heif" || file.type === "image/heic" || file.type === "image/heif";
-    setFotoFile(file);
-    setFotoPreview(isHeic ? "__heic__" : URL.createObjectURL(file));
+    if (isHeic) {
+      try {
+        const heic2any = (await import("heic2any")).default;
+        const blob = await heic2any({ blob: file, toType: "image/jpeg", quality: 0.85 });
+        const converted = new File([blob], file.name.replace(/\.(heic|heif)$/i, ".jpg"), { type: "image/jpeg" });
+        setFotoFile(converted);
+        setFotoPreview(URL.createObjectURL(converted));
+      } catch {
+        setFotoFile(file);
+        setFotoPreview("__heic__");
+      }
+    } else {
+      setFotoFile(file);
+      setFotoPreview(URL.createObjectURL(file));
+    }
     setErro("");
   }
 
@@ -310,7 +323,7 @@ export default function CadastroPublico() {
                 <span style={{ fontSize: 18 }}>🖼️</span> Selecionar foto ou cartaz
               </button>
             )}
-            <input ref={fileRef} type="file" accept="image/jpeg,image/jpg,image/png,image/webp,image/gif" onChange={onFotoChange} style={{ display: "none" }} />
+            <input ref={fileRef} type="file" accept="image/*" onChange={onFotoChange} style={{ display: "none" }} />
           </Field>
 
           <Field label="Observações / Rider técnico">

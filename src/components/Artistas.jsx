@@ -337,13 +337,26 @@ function ModalArtista({ artista, onSalvar, onFechar }) {
     }));
   }
 
-  function onFotoChange(e) {
+  async function onFotoChange(e) {
     const file = e.target.files?.[0];
     if (!file) return;
-    setFotoFile(file);
     const ext = file.name.split(".").pop()?.toLowerCase();
     const isHeic = ext === "heic" || ext === "heif" || file.type === "image/heic" || file.type === "image/heif";
-    setFotoPreview(isHeic ? "__heic__" : URL.createObjectURL(file));
+    if (isHeic) {
+      try {
+        const heic2any = (await import("heic2any")).default;
+        const blob = await heic2any({ blob: file, toType: "image/jpeg", quality: 0.85 });
+        const converted = new File([blob], file.name.replace(/\.(heic|heif)$/i, ".jpg"), { type: "image/jpeg" });
+        setFotoFile(converted);
+        setFotoPreview(URL.createObjectURL(converted));
+      } catch {
+        setFotoFile(file);
+        setFotoPreview("__heic__");
+      }
+    } else {
+      setFotoFile(file);
+      setFotoPreview(URL.createObjectURL(file));
+    }
   }
 
   function removerFoto() {
@@ -504,7 +517,7 @@ function ModalArtista({ artista, onSalvar, onFechar }) {
                   <span>Selecionar cartaz / foto</span>
                 </button>
               )}
-              <input ref={fileRef} type="file" accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+              <input ref={fileRef} type="file" accept="image/*"
                 onChange={onFotoChange} style={{ display: "none" }} />
               {!fotoPreview && (
                 <button type="button" onClick={() => fileRef.current?.click()}
