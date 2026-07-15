@@ -340,6 +340,12 @@ function ModalArtista({ artista, onSalvar, onFechar }) {
   function onFotoChange(e) {
     const file = e.target.files?.[0];
     if (!file) return;
+    const ext = file.name.split(".").pop()?.toLowerCase();
+    if (ext === "heic" || ext === "heif" || file.type === "image/heic" || file.type === "image/heif") {
+      alert("Formato HEIC não suportado.\n\nConverta a foto para JPG ou PNG antes de enviar.\n\nNo iPhone: Ajustes → Câmera → Formatos → Mais Compatível.");
+      e.target.value = "";
+      return;
+    }
     setFotoFile(file);
     setFotoPreview(URL.createObjectURL(file));
   }
