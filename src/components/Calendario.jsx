@@ -67,11 +67,14 @@ export default function Calendario({ artistas, shows, onAtualizar, gcalConectado
       const artistaObj = artistas.find(a => a.id === dados.artistaId);
       if (artistaObj) {
         try {
+          // 1º show do dia = amarelo (5), 2º = vermelho (11)
+          const showsNoDia = shows.filter(s => s.data === dados.data && s.id !== dados.id && s.status !== "cancelado");
+          const colorId = showsNoDia.length === 0 ? "5" : "11";
           if (isNovo || !dados.gcalEventId) {
-            const evId = await criarEventoCalendar(payload, artistaObj, gcalId);
+            const evId = await criarEventoCalendar(payload, artistaObj, gcalId, colorId);
             payload.gcalEventId = evId;
           } else {
-            await atualizarEventoCalendar(dados.gcalEventId, payload, artistaObj, gcalId);
+            await atualizarEventoCalendar(dados.gcalEventId, payload, artistaObj, gcalId, colorId);
           }
         } catch (e) {
           console.warn("Google Calendar:", e.message);

@@ -52,7 +52,7 @@ export function revokeGoogleToken(onDone) {
   });
 }
 
-function buildEventBody(show, artista) {
+function buildEventBody(show, artista, colorId) {
   const [h, m] = show.horario.split(":").map(Number);
   const start = new Date(`${show.data}T${show.horario}:00`);
   const end = new Date(start.getTime() + 3 * 60 * 60 * 1000); // +3h
@@ -72,13 +72,13 @@ function buildEventBody(show, artista) {
     location: "Bar Pé Sujo",
     start: { dateTime: toISO(start), timeZone: "America/Sao_Paulo" },
     end:   { dateTime: toISO(end),   timeZone: "America/Sao_Paulo" },
-    colorId: gcalColorId,
+    colorId: colorId ?? gcalColorId,
   };
 }
 
-export async function criarEventoCalendar(show, artista, calendarId = "primary") {
+export async function criarEventoCalendar(show, artista, calendarId = "primary", colorId) {
   if (!gapiReady || !accessToken) throw new Error("Google Calendar não autenticado");
-  const body = buildEventBody(show, artista);
+  const body = buildEventBody(show, artista, colorId);
   const resp = await window.gapi.client.calendar.events.insert({
     calendarId,
     resource: body,
@@ -86,9 +86,9 @@ export async function criarEventoCalendar(show, artista, calendarId = "primary")
   return resp.result.id;
 }
 
-export async function atualizarEventoCalendar(eventId, show, artista, calendarId = "primary") {
+export async function atualizarEventoCalendar(eventId, show, artista, calendarId = "primary", colorId) {
   if (!gapiReady || !accessToken) throw new Error("Google Calendar não autenticado");
-  const body = buildEventBody(show, artista);
+  const body = buildEventBody(show, artista, colorId);
   const resp = await window.gapi.client.calendar.events.update({
     calendarId,
     eventId,
