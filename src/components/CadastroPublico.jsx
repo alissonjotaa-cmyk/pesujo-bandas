@@ -58,6 +58,7 @@ export default function CadastroPublico() {
     generos: [],
     formacoes: [{ nome: "", integrantes: 1, cache: "" }],
   });
+  const [outroGenero, setOutroGenero] = useState("");
   const [fotoFile, setFotoFile] = useState(null);
   const [fotoPreview, setFotoPreview] = useState("");
   const [termoAceito, setTermoAceito] = useState(false);
@@ -135,6 +136,7 @@ export default function CadastroPublico() {
         pix: form.pix.trim(),
         observacoes: form.observacoes.trim(),
         generos: form.generos,
+        outroGenero: form.generos.includes("outro") ? outroGenero.trim() : "",
         formacoes,
         fotoUrl,
         fotoPath,
@@ -208,6 +210,15 @@ export default function CadastroPublico() {
                 </button>
               ))}
             </div>
+            {form.generos.includes("outro") && (
+              <input
+                value={outroGenero}
+                onChange={e => setOutroGenero(e.target.value)}
+                style={{ ...inputStyle, marginTop: 8, fontSize: 13 }}
+                placeholder="Qual gênero? Ex: Jazz, Blues, Gospel…"
+                autoFocus
+              />
+            )}
           </Field>
 
           <Field label={`Formações (${form.formacoes.length}/${MAX_FORMACOES})`}>
