@@ -3,7 +3,7 @@ import { fbSet, fbGetOne } from "../firebase";
 import { IconCheck } from "../icons";
 import { TERMO_TEXTO } from "./CadastroPublico";
 
-export default function ConfigGeral() {
+export default function ConfigGeral({ tema, onTemaChange }) {
   const [termoTexto, setTermoTexto] = useState("");
   const [salvoTermo, setSalvoTermo] = useState(false);
 
@@ -22,6 +22,32 @@ export default function ConfigGeral() {
   return (
     <div style={{ padding: "20px 16px", maxWidth: 640, margin: "0 auto" }}>
       <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 24 }}>⚙️ Configurações</h2>
+
+      {/* Aparência */}
+      <section style={card}>
+        <h3 style={{ fontWeight: 700, marginBottom: 4 }}>🎨 Aparência</h3>
+        <p style={{ color: "var(--text2)", fontSize: 12, marginBottom: 16 }}>
+          Escolha entre o modo escuro e o modo claro da interface.
+        </p>
+        <div style={{ display: "flex", gap: 10 }}>
+          {[
+            { valor: "dark",  label: "🌙 Modo Escuro" },
+            { valor: "light", label: "☀️ Modo Claro"  },
+          ].map(({ valor, label }) => (
+            <button key={valor} onClick={() => onTemaChange(valor)}
+              style={{
+                flex: 1, padding: "10px 0", borderRadius: 8, cursor: "pointer",
+                fontWeight: 600, fontSize: 13,
+                background: tema === valor ? "var(--primary)" : "var(--bg2)",
+                color: tema === valor ? "#fff" : "var(--text2)",
+                border: `2px solid ${tema === valor ? "var(--primary)" : "var(--border)"}`,
+                transition: "all 0.15s",
+              }}>
+              {label}
+            </button>
+          ))}
+        </div>
+      </section>
 
       {/* Termo de Convivência */}
       <section style={{ ...card, marginTop: 16 }}>

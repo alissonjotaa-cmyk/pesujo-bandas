@@ -19,6 +19,24 @@
   --shadow: 0 4px 24px rgba(0,0,0,0.4);
 }
 
+[data-theme="light"] {
+  --bg: #f4f4f8;
+  --bg2: #ffffff;
+  --bg3: #e8e8f0;
+  --card: #ffffff;
+  --border: #d0d0e0;
+  --primary: #7c3aed;
+  --primary-light: #6d28d9;
+  --accent: #d97706;
+  --success: #059669;
+  --danger: #dc2626;
+  --warning: #d97706;
+  --text: #1e1b4b;
+  --text2: #4b5563;
+  --text3: #9ca3af;
+  --shadow: 0 4px 24px rgba(0,0,0,0.1);
+}
+
 body {
   background: var(--bg);
   color: var(--text);

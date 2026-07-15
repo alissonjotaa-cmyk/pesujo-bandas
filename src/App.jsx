@@ -32,6 +32,12 @@ export default function App() {
   const [shows, setShows] = useState([]);
   const [collapsed, setCollapsed] = useState(false);
   const [agendarArtista, setAgendarArtista] = useState(null);
+  const [tema, setTema] = useState(() => localStorage.getItem("tema") ?? "dark");
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", tema);
+    localStorage.setItem("tema", tema);
+  }, [tema]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [toast, setToast] = useState(null);
   const pendentesRef = useRef(null);
@@ -287,7 +293,7 @@ export default function App() {
         )}
         {aba === "convites" && <Convites artistas={artistas} shows={shows} />}
         {aba === "marketing" && <Marketing artistas={artistas} shows={shows} />}
-        {aba === "config" && <ConfigGeral />}
+        {aba === "config" && <ConfigGeral tema={tema} onTemaChange={setTema} />}
       </main>
     </div>
   );
