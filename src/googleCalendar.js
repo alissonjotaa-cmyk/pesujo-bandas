@@ -4,6 +4,9 @@ const DISCOVERY_DOC = "https://www.googleapis.com/discovery/v1/apis/calendar/v3/
 let gapiReady = false;
 let tokenClient = null;
 let accessToken = null;
+let gcalColorId = "10"; // Basil (verde escuro) — padrão
+
+export function setGcalColorId(id) { gcalColorId = id; }
 
 export function getAccessToken() { return accessToken; }
 
@@ -69,7 +72,7 @@ function buildEventBody(show, artista) {
     location: "Bar Pé Sujo",
     start: { dateTime: toISO(start), timeZone: "America/Sao_Paulo" },
     end:   { dateTime: toISO(end),   timeZone: "America/Sao_Paulo" },
-    colorId: "3",
+    colorId: gcalColorId,
   };
 }
 
