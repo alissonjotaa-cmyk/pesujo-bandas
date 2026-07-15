@@ -6,7 +6,8 @@ import Artistas from "./components/Artistas";
 import Calendario from "./components/Calendario";
 import Shows from "./components/Shows";
 import ConfigGeral from "./components/ConfigGeral";
-import { IconCalendar, IconUsers, IconDollar, IconSettings, IconLogout, IconChevronLeft, IconChevronRight } from "./icons";
+import Convites from "./components/Convites";
+import { IconCalendar, IconUsers, IconDollar, IconSettings, IconLogout, IconChevronLeft, IconChevronRight, IconMail } from "./icons";
 
 const PAPEIS_PERMITIDOS = ["gestor", "gerente"];
 
@@ -14,6 +15,7 @@ const ABAS = [
   { key: "calendario", label: "Calendário", icon: IconCalendar },
   { key: "shows",      label: "Shows",      icon: IconDollar },
   { key: "artistas",   label: "Artistas",   icon: IconUsers },
+  { key: "convites",   label: "Convites",   icon: IconMail },
   { key: "config",     label: "Config",     icon: IconSettings },
 ];
 
@@ -241,6 +243,7 @@ export default function App() {
           <Artistas artistas={artistas} shows={shows} onAtualizar={recarregar}
             onAgendar={artista => { setAgendarArtista(artista); setAba("calendario"); }} />
         )}
+        {aba === "convites" && <Convites artistas={artistas} shows={shows} />}
         {aba === "config" && <ConfigGeral onGcalChange={setGcal} />}
       </main>
     </div>

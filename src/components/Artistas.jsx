@@ -517,7 +517,7 @@ function ModalArtista({ artista, onSalvar, onFechar }) {
                   <span>Selecionar cartaz / foto</span>
                 </button>
               )}
-              <input ref={fileRef} type="file" accept="image/*"
+              <input ref={fileRef} type="file" accept="image/*,.heic,.heif"
                 onChange={onFotoChange} style={{ display: "none" }} />
               {!fotoPreview && (
                 <button type="button" onClick={() => fileRef.current?.click()}
@@ -568,6 +568,27 @@ function ModalAgendarShow({ artista, shows, onFechar, onSalvo }) {
     const idx = {};
     shows.forEach(s => { if (s.data && s.horario) idx[`${s.data}|${s.horario}`] = true; });
     return idx;
+  }, [shows]);
+
+  // contagem de shows por data (para indicador visual no calendário)
+  const showsPorDia = useMemo(() => {
+    const m = {};
+    shows.forEach(s => {
+      if (s.data && s.status !== "cancelado") m[s.data] = (m[s.data] ?? 0) + 1;
+    });
+    return m;
+  }, [shows]);
+
+  // horários ocupados por data (inclui horários customizados)
+  const horariosPorDia = useMemo(() => {
+    const m = {};
+    shows.forEach(s => {
+      if (s.data && s.horario && s.status !== "cancelado") {
+        if (!m[s.data]) m[s.data] = [];
+        if (!m[s.data].includes(s.horario)) m[s.data].push(s.horario);
+      }
+    });
+    return m;
   }, [shows]);
 
   function temConflito(data, horario) {
@@ -668,18 +689,29 @@ function ModalAgendarShow({ artista, shows, onFechar, onSalvo }) {
             const passado = d < todayStr;
             const cfgDia = selecionadas[d];
             const conflito = sel && temConflito(d, cfgDia?.horario);
+            const qtdShows = showsPorDia[d] ?? 0;
+            const temShow = qtdShows > 0 && !sel;
             return (
               <button key={dia} type="button" onClick={() => !passado && !fechado && toggleData(dia)}
-                title={conflito ? "Horário já ocupado" : undefined}
+                title={conflito ? "Horário já ocupado" : temShow ? `${qtdShows} show${qtdShows > 1 ? "s" : ""} agendado${qtdShows > 1 ? "s" : ""}` : undefined}
                 style={{
-                  padding: "6px 2px", borderRadius: 6, fontSize: 12, fontWeight: sel ? 700 : 400,
+                  padding: "4px 2px 2px", borderRadius: 6, fontSize: 12, fontWeight: sel ? 700 : 400,
                   textAlign: "center", cursor: fechado || passado ? "default" : "pointer",
-                  background: conflito ? "#ef444422" : sel ? "var(--primary)" : "var(--bg2)",
-                  border: `1px solid ${conflito ? "#ef4444" : sel ? "var(--primary)" : "var(--border)"}`,
+                  background: conflito ? "#ef444422" : sel ? "var(--primary)" : temShow ? "var(--bg3)" : "var(--bg2)",
+                  border: `1px solid ${conflito ? "#ef4444" : sel ? "var(--primary)" : temShow ? "var(--primary)55" : "var(--border)"}`,
                   color: conflito ? "#ef4444" : sel ? "#fff" : fechado || passado ? "var(--text3)" : "var(--text)",
                   opacity: fechado || passado ? 0.35 : 1,
+                  display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
                 }}>
                 {dia}
+                <span style={{ display: "flex", gap: 2, justifyContent: "center", height: 6 }}>
+                  {temShow && !passado && qtdShows >= 1 && (
+                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#f59e0b", flexShrink: 0 }} />
+                  )}
+                  {temShow && !passado && qtdShows >= 2 && (
+                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#ef4444", flexShrink: 0 }} />
+                  )}
+                </span>
               </button>
             );
           })}
@@ -711,20 +743,32 @@ function ModalAgendarShow({ artista, shows, onFechar, onSalvo }) {
                   <div>
                     <div style={{ fontSize: 10, color: "var(--text3)", marginBottom: 3 }}>Horário</div>
                     <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                      {/* Slots pré-definidos do dia */}
                       {regra?.slots?.map(s => {
                         const ocupado = temConflito(d, s);
                         const ativo = cfg.horario === s;
                         return (
-                          <button key={s} type="button" onClick={() => setDadoData(d, "horario", s)}
+                          <button key={s} type="button" onClick={() => !ocupado && setDadoData(d, "horario", s)}
                             title={ocupado ? "Horário já ocupado" : undefined}
                             style={{
-                              borderRadius: 6, padding: "3px 8px", fontSize: 11, cursor: "pointer", fontWeight: 600,
+                              borderRadius: 6, padding: "3px 8px", fontSize: 11, cursor: ocupado ? "not-allowed" : "pointer", fontWeight: 600,
                               background: ocupado ? "#ef444422" : ativo ? "var(--primary)33" : "var(--bg3)",
                               border: `1px solid ${ocupado ? "#ef4444" : ativo ? "var(--primary)" : "var(--border)"}`,
                               color: ocupado ? "#ef4444" : ativo ? "var(--primary-light)" : "var(--text2)",
                             }}>{s}{ocupado ? " ⚠️" : ""}</button>
                         );
                       })}
+                      {/* Horários customizados ocupados (não estão nos slots pré-definidos) */}
+                      {(horariosPorDia[d] ?? [])
+                        .filter(h => !regra?.slots?.includes(h))
+                        .sort()
+                        .map(h => (
+                          <button key={h} type="button" disabled title="Horário já ocupado"
+                            style={{
+                              borderRadius: 6, padding: "3px 8px", fontSize: 11, cursor: "not-allowed", fontWeight: 600,
+                              background: "#ef444422", border: "1px solid #ef4444", color: "#ef4444",
+                            }}>{h} ⚠️</button>
+                        ))}
                       <input type="time" value={cfg.horario}
                         onChange={e => setDadoData(d, "horario", e.target.value)}
                         style={{ ...inputStyle, fontSize: 11, padding: "3px 6px", width: 90 }} />

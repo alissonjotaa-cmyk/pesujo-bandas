@@ -1,7 +1,7 @@
 import { initializeApp } from "firebase/app";
 import {
   getFirestore, collection, doc, getDocs, getDoc,
-  setDoc, deleteDoc, onSnapshot, query, orderBy, where
+  setDoc, deleteDoc, onSnapshot, query, orderBy, where, runTransaction
 } from "firebase/firestore";
 import {
   getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail
@@ -66,4 +66,9 @@ export async function fbDeleteFoto(path) {
   try { await deleteObject(ref(storage, path)); } catch {}
 }
 
-export { orderBy, where, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail };
+export async function fbGetAllQuery(col, ...constraints) {
+  const snap = await getDocs(query(collection(db, col), ...constraints));
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+export { orderBy, where, runTransaction, collection, doc, getDocs, query, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail };
