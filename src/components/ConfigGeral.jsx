@@ -103,32 +103,6 @@ export default function ConfigGeral({ onGcalChange }) {
             </Field>
           )}
 
-          <Field label="Cor dos eventos no Google Calendar">
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 4 }}>
-              {[
-                { id: "11", cor: "#d50000", nome: "Vermelho" },
-                { id: "6",  cor: "#f4511e", nome: "Laranja" },
-                { id: "5",  cor: "#f6bf26", nome: "Amarelo" },
-                { id: "2",  cor: "#33b679", nome: "Verde" },
-                { id: "10", cor: "#0b8043", nome: "Verde escuro" },
-                { id: "7",  cor: "#039be5", nome: "Azul claro" },
-                { id: "9",  cor: "#3f51b5", nome: "Azul" },
-                { id: "3",  cor: "#8e24aa", nome: "Roxo" },
-                { id: "4",  cor: "#e67c73", nome: "Rosa" },
-                { id: "8",  cor: "#616161", nome: "Cinza" },
-              ].map(({ id, cor, nome }) => (
-                <button key={id} type="button" title={nome}
-                  onClick={() => setGcalColorIdState(id)}
-                  style={{
-                    width: 28, height: 28, borderRadius: "50%", background: cor, border: "none",
-                    cursor: "pointer", flexShrink: 0,
-                    outline: gcalColorId === id ? `3px solid ${cor}` : "3px solid transparent",
-                    outlineOffset: 2, transition: "outline 0.1s",
-                  }} />
-              ))}
-            </div>
-          </Field>
-
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             {!gcalConectado ? (
               <button onClick={iniciarGcal} disabled={gcalIniciando || !gcalClientId.trim()} style={btnPrimary}>
