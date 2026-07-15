@@ -1,0 +1,8 @@
+{
+  "short_name": "PS Bandas",
+  "name": "Pé Sujo — Bandas",
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#1a1a2e",
+  "background_color": "#0f0f1a"
+}
