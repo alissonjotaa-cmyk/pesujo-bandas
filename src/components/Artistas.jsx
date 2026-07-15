@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef } from "react";
 import { fbSet, fbDel, fbUploadFoto, fbDeleteFoto } from "../firebase";
 import { GENEROS, REGRAS_DIA, MESES, getFormacoes, artistaElegivelParaDia } from "../regras";
-import { IconPlus, IconEdit, IconTrash, IconSearch, IconMic, IconPhone, IconCheck, IconX, IconCalendar, IconChevronLeft, IconChevronRight, IconLink } from "../icons";
+import { IconPlus, IconEdit, IconTrash, IconSearch, IconMic, IconPhone, IconCheck, IconX, IconCalendar, IconChevronLeft, IconChevronRight, IconLink, IconMail } from "../icons";
 import { nanoid, diasNoMes, primeiroDiaSemana } from "../utils";
 
 const MAX_FORMACOES = 3;
