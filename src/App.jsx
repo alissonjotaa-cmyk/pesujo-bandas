@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { auth, onAuthStateChanged, signOut, fbGetOne, fbSet, fbListen, orderBy } from "./firebase";
-import { initGoogleCalendar, requestGoogleToken, criarEventoCalendar, atualizarEventoCalendar, getAccessToken } from "./googleCalendar";
 import { nanoid } from "./utils";
 import Login from "./components/Login";
 import Artistas from "./components/Artistas";
@@ -31,7 +30,6 @@ export default function App() {
   const [aba, setAba] = useState("calendario");
   const [artistas, setArtistas] = useState([]);
   const [shows, setShows] = useState([]);
-  const [gcal, setGcal] = useState({ conectado: false, gcalId: "primary" });
   const [collapsed, setCollapsed] = useState(false);
   const [agendarArtista, setAgendarArtista] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -71,43 +69,11 @@ export default function App() {
     return () => { unsub1(); unsub2(); };
   }, [user]);
 
-  useEffect(() => {
-    if (!user) return;
-    fbGetOne("bandas_config", "geral").then(c => {
-      if (!c?.gcalClientId) return;
-      initGoogleCalendar(c.gcalClientId, (token) => {
-        setGcal({ conectado: !!token, gcalId: c.gcalId ?? "primary" });
-      }).then(() => requestGoogleToken(true)).catch(() => {}); // silent — sem popup
-    });
-  }, [user]);
-
   const recarregar = useCallback(() => {}, []);
 
-  // Salva show no Firestore + sincroniza com Google Calendar
   async function salvarShow(dados) {
     const id = dados.id ?? nanoid();
-    const isNovo = !dados.id;
-    const payload = { ...dados, id };
-
-    if (gcal.conectado && getAccessToken()) {
-      const artistaObj = artistas.find(a => a.id === dados.artistaId);
-      if (artistaObj) {
-        try {
-          const showsNoDia = shows.filter(s => s.data === dados.data && s.id !== dados.id && s.status !== "cancelado");
-          const colorId = showsNoDia.length === 0 ? "5" : "11";
-          if (isNovo || !dados.gcalEventId) {
-            const evId = await criarEventoCalendar(payload, artistaObj, gcal.gcalId, colorId);
-            payload.gcalEventId = evId;
-          } else {
-            await atualizarEventoCalendar(dados.gcalEventId, payload, artistaObj, gcal.gcalId, colorId);
-          }
-        } catch (e) {
-          alert(`⚠️ Erro ao sincronizar com Google Calendar:\n${e.message}\n\nO show foi salvo normalmente.`);
-        }
-      }
-    }
-
-    await fbSet("bandas_shows", id, payload);
+    await fbSet("bandas_shows", id, { ...dados, id });
   }
 
   if (user === undefined) return <Splash />;
@@ -123,8 +89,6 @@ export default function App() {
 
   const sw = isMobile ? 0 : (collapsed ? SIDEBAR_COLLAPSED : SIDEBAR_EXPANDED);
   const sidebarVisible = isMobile ? sidebarOpen : true;
-
-  const pendentes = artistas.filter(a => a.status === "pendente").length;
 
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
@@ -241,26 +205,6 @@ export default function App() {
 
         {/* Rodapé sidebar */}
         <div style={{ borderTop: "1px solid var(--border)", padding: "10px 0" }}>
-          {/* GCal badge */}
-          {!collapsed && gcal.gcalId && (
-            <div style={{
-              margin: "0 12px 8px", fontSize: 11,
-              background: gcal.conectado ? "var(--success)15" : "var(--warning)15",
-              color: gcal.conectado ? "var(--success)" : "var(--warning)",
-              border: `1px solid ${gcal.conectado ? "var(--success)33" : "var(--warning)44"}`,
-              borderRadius: 8, padding: "5px 10px",
-              display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6,
-            }}>
-              <span>{gcal.conectado ? "📅 Google Calendar ativo" : "📅 GCal desconectado"}</span>
-              {!gcal.conectado && (
-                <button onClick={() => requestGoogleToken(false)}
-                  style={{ background: "none", border: "none", cursor: "pointer", color: "var(--warning)", fontSize: 10, fontWeight: 700, padding: 0, textDecoration: "underline" }}>
-                  Reconectar
-                </button>
-              )}
-            </div>
-          )}
-
           {/* Usuário + sair */}
           <div style={{
             display: "flex", alignItems: "center",
@@ -333,7 +277,6 @@ export default function App() {
         {aba === "calendario" && (
           <Calendario artistas={artistas} shows={shows} onAtualizar={recarregar}
             onSalvarShow={salvarShow}
-            gcalConectado={gcal.conectado} gcalId={gcal.gcalId}
             agendarArtista={agendarArtista} onAgendarClear={() => setAgendarArtista(null)} />
         )}
         {aba === "shows" && <Shows shows={shows} artistas={artistas} onAtualizar={recarregar} onSalvarShow={salvarShow} />}
@@ -344,7 +287,7 @@ export default function App() {
         )}
         {aba === "convites" && <Convites artistas={artistas} shows={shows} />}
         {aba === "marketing" && <Marketing artistas={artistas} shows={shows} />}
-        {aba === "config" && <ConfigGeral onGcalChange={setGcal} />}
+        {aba === "config" && <ConfigGeral />}
       </main>
     </div>
   );

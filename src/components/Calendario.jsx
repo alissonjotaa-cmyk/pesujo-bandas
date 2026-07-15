@@ -3,10 +3,9 @@ import { fbDel } from "../firebase";
 import { REGRAS_DIA, GENEROS, artistasElegiveisParaSlot, getFormacoes } from "../regras";
 import { formatarMoeda, diasNoMes, primeiroDiaSemana } from "../utils";
 import { IconChevronLeft, IconChevronRight, IconX, IconCheck, IconPlus, IconTrash, IconClock } from "../icons";
-import { deletarEventoCalendar, getAccessToken } from "../googleCalendar";
 import { MESES } from "../regras";
 
-export default function Calendario({ artistas, shows, onAtualizar, onSalvarShow, gcalConectado, gcalId, agendarArtista, onAgendarClear }) {
+export default function Calendario({ artistas, shows, onAtualizar, onSalvarShow, agendarArtista, onAgendarClear }) {
   const hoje = new Date();
   const [ano, setAno] = useState(hoje.getFullYear());
   const [mes, setMes] = useState(hoje.getMonth());
@@ -66,9 +65,6 @@ export default function Calendario({ artistas, shows, onAtualizar, onSalvarShow,
 
   async function excluirShow(show) {
     if (!window.confirm("Remover este show?")) return;
-    if (gcalConectado && show.gcalEventId && getAccessToken()) {
-      try { await deletarEventoCalendar(show.gcalEventId, gcalId); } catch {}
-    }
     await fbDel("bandas_shows", show.id);
     onAtualizar();
     setModalSlot(null);
@@ -142,8 +138,6 @@ export default function Calendario({ artistas, shows, onAtualizar, onSalvarShow,
         <ModalShow
           slot={modalSlot}
           artistas={artistas}
-          gcalConectado={gcalConectado}
-          gcalId={gcalId}
           onSalvar={salvarShow}
           onExcluir={excluirShow}
           onFechar={() => setModalSlot(null)}
@@ -256,7 +250,7 @@ function DiaCell({ dia, dataStr, regra, isHoje, passado, artistas, showDoSlot, s
   );
 }
 
-function ModalShow({ slot, artistas, gcalConectado, gcalId, onSalvar, onExcluir, onFechar }) {
+function ModalShow({ slot, artistas, onSalvar, onExcluir, onFechar }) {
   const { data: dataInicial, horario: horarioInicial, show, customHorario, preArtista } = slot;
 
   const artistaInicial = preArtista ?? (show?.artistaId ? artistas.find(a => a.id === show.artistaId) : null);
@@ -270,7 +264,6 @@ function ModalShow({ slot, artistas, gcalConectado, gcalId, onSalvar, onExcluir,
     status: show?.status ?? "pendente",
     observacoes: show?.observacoes ?? "",
     id: show?.id ?? undefined,
-    gcalEventId: show?.gcalEventId ?? undefined,
     data: dataInicial,
     horario: horarioInicial ?? "",
   });
@@ -459,11 +452,6 @@ function ModalShow({ slot, artistas, gcalConectado, gcalId, onSalvar, onExcluir,
               rows={2} style={{ ...inputStyle, resize: "vertical" }} placeholder="Rider técnico, observações…" />
           </Field>
 
-          {gcalConectado && (
-            <div style={{ fontSize: 11, color: "var(--success)", display: "flex", alignItems: "center", gap: 4 }}>
-              <IconCheck size={12} /> Será sincronizado com Google Calendar
-            </div>
-          )}
 
           <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
             {show && (
