@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { GENEROS } from "../regras";
-import { IconDownload, IconImage, IconChevronLeft, IconChevronRight } from "../icons";
+import { IconDownload, IconImage, IconChevronLeft, IconChevronRight, IconLink, IconCheck } from "../icons";
 
 const DIAS_SEMANA_LABEL = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 // Grid exibe Seg→Dom
@@ -27,9 +27,18 @@ function addDias(d, n) {
   return r;
 }
 
-export default function Marketing({ shows, artistas }) {
+export default function Marketing({ shows, artistas, publico = false }) {
   const hoje = new Date();
   const [semanaBase, setSemanaBase] = useState(() => inicioSemana(hoje));
+  const [copiado, setCopiado] = useState(false);
+
+  function copiarLink() {
+    const url = `${window.location.origin}/marketing`;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 2500);
+    });
+  }
 
   const dias = useMemo(() =>
     ORDEM_GRID.map((_, i) => addDias(semanaBase, i)),
@@ -70,11 +79,26 @@ export default function Marketing({ shows, artistas }) {
 
   return (
     <div style={{ padding: "20px 16px", maxWidth: 1100, margin: "0 auto" }}>
-      <div style={{ marginBottom: 20 }}>
-        <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>🎨 Marketing</h2>
-        <p style={{ color: "var(--text2)", fontSize: 13 }}>
-          Grade semanal de shows para divulgação. Baixe as fotos dos artistas diretamente.
-        </p>
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
+        <div>
+          <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>🎨 Marketing</h2>
+          <p style={{ color: "var(--text2)", fontSize: 13 }}>
+            Grade semanal de shows para divulgação. Baixe as fotos dos artistas diretamente.
+          </p>
+        </div>
+        {!publico && (
+          <button onClick={copiarLink} style={{
+            display: "flex", alignItems: "center", gap: 6,
+            background: copiado ? "var(--success)18" : "var(--bg2)",
+            border: `1px solid ${copiado ? "var(--success)" : "var(--border)"}`,
+            color: copiado ? "var(--success)" : "var(--text2)",
+            borderRadius: 8, padding: "8px 14px", cursor: "pointer",
+            fontSize: 12, fontWeight: 600, whiteSpace: "nowrap",
+            transition: "all 0.15s",
+          }}>
+            {copiado ? <><IconCheck size={13} /> Link copiado!</> : <><IconLink size={13} /> Copiar link público</>}
+          </button>
+        )}
       </div>
 
       {/* Navegação de semana */}
