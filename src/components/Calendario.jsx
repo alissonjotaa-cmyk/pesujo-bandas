@@ -5,7 +5,7 @@ import { formatarMoeda, diasNoMes, primeiroDiaSemana } from "../utils";
 import { IconChevronLeft, IconChevronRight, IconX, IconCheck, IconPlus, IconTrash, IconClock } from "../icons";
 import { MESES } from "../regras";
 
-export default function Calendario({ artistas, shows, onAtualizar, onSalvarShow, agendarArtista, onAgendarClear }) {
+export default function Calendario({ artistas, shows, onAtualizar, onSalvarShow, agendarArtista, onAgendarClear, onConvite }) {
   const hoje = new Date();
   const [ano, setAno] = useState(hoje.getFullYear());
   const [mes, setMes] = useState(hoje.getMonth());
@@ -141,6 +141,7 @@ export default function Calendario({ artistas, shows, onAtualizar, onSalvarShow,
           onSalvar={salvarShow}
           onExcluir={excluirShow}
           onFechar={() => setModalSlot(null)}
+          onConvite={artista => { setModalSlot(null); onConvite?.(artista); }}
         />
       )}
 
@@ -250,7 +251,7 @@ function DiaCell({ dia, dataStr, regra, isHoje, passado, artistas, showDoSlot, s
   );
 }
 
-function ModalShow({ slot, artistas, onSalvar, onExcluir, onFechar }) {
+function ModalShow({ slot, artistas, onSalvar, onExcluir, onFechar, onConvite }) {
   const { data: dataInicial, horario: horarioInicial, show, customHorario, preArtista } = slot;
 
   const artistaInicial = preArtista ?? (show?.artistaId ? artistas.find(a => a.id === show.artistaId) : null);
@@ -465,6 +466,22 @@ function ModalShow({ slot, artistas, onSalvar, onExcluir, onFechar }) {
               {show ? "Atualizar" : "Agendar"}
             </button>
           </div>
+
+          {form.artistaId && (
+            <button
+              type="button"
+              onClick={() => {
+                const artista = artistas.find(a => a.id === form.artistaId);
+                if (artista) onConvite?.(artista);
+              }}
+              style={{
+                ...btnPrimary, width: "100%", marginTop: 8,
+                background: "#059669", border: "none",
+              }}
+            >
+              ✉️ Enviar convite online
+            </button>
+          )}
         </form>
       </div>
     </div>

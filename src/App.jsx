@@ -286,7 +286,8 @@ export default function App() {
         {aba === "calendario" && (
           <Calendario artistas={artistas} shows={shows} onAtualizar={recarregar}
             onSalvarShow={salvarShow}
-            agendarArtista={agendarArtista} onAgendarClear={() => setAgendarArtista(null)} />
+            agendarArtista={agendarArtista} onAgendarClear={() => setAgendarArtista(null)}
+            onConvite={artista => { setConvidarArtista(artista); setAba("convites"); }} />
         )}
         {aba === "shows" && <Shows shows={shows} artistas={artistas} onAtualizar={recarregar} onSalvarShow={salvarShow} />}
         {aba === "artistas" && (
