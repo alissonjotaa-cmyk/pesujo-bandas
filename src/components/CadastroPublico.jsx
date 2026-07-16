@@ -133,7 +133,7 @@ export default function CadastroPublico() {
       const id = nanoid();
       const formacoes = form.formacoes.map(f => ({
         ...f,
-        cache: f.cache !== "" && f.cache != null ? Number(f.cache) : null,
+        cache: f.cache !== "" && f.cache != null ? parseFloat(String(f.cache).replace(",", ".")) || 0 : null,
       }));
 
       let fotoUrl = "";
