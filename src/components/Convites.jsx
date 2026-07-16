@@ -34,6 +34,9 @@ export default function Convites({ artistas, shows, artistaInicial }) {
     await fbDel("bandas_convites", id);
   }
 
+  function eExpirado(c) {
+    return c.status === "pendente" && c.expiraEm && new Date() > new Date(c.expiraEm);
+  }
   function temSlotAceito(c) {
     return c.slots?.some(s => s.status === "aceito");
   }
@@ -107,10 +110,12 @@ export default function Convites({ artistas, shows, artistaInicial }) {
             const cor = STATUS_COR[c.status] ?? "var(--text3)";
             const url = `${window.location.origin}/convite/${c.id}`;
             const recusado = c.status === "recusado" || c.status === "conflito_total";
+            const expirado = eExpirado(c);
             return (
               <div key={c.id} style={{
-                background: recusado ? "#ef444430" : "var(--card)",
-                border: `2px solid ${recusado ? "#ef4444" : "var(--border)"}`,
+                background: recusado ? "#ef444430" : expirado ? "var(--bg3)" : "var(--card)",
+                border: `2px solid ${recusado ? "#ef4444" : expirado ? "var(--border)" : "var(--border)"}`,
+                opacity: expirado ? 0.7 : 1,
                 borderRadius: 12, padding: "14px 16px",
                 display: "flex", flexDirection: "column", gap: 10,
               }}>
@@ -122,8 +127,10 @@ export default function Convites({ artistas, shows, artistaInicial }) {
                     </div>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ color: cor, fontWeight: 700, fontSize: 12 }}>● {STATUS_LABEL[c.status] ?? c.status}</span>
-                    {c.status === "pendente" && artista?.contato && (
+                    <span style={{ color: expirado ? "var(--text3)" : cor, fontWeight: 700, fontSize: 12 }}>
+                      ● {expirado ? "Expirado" : (STATUS_LABEL[c.status] ?? c.status)}
+                    </span>
+                    {c.status === "pendente" && !expirado && artista?.contato && (
                       <a
                         href={`https://wa.me/55${artista.contato.replace(/\D/g, "")}?text=${encodeURIComponent(`Olá ${c.artistaNome}! O Bar Pé Sujo tem datas disponíveis para você 🎵\n\nAcesse o link para confirmar:\n${url}`)}`}
                         target="_blank" rel="noopener noreferrer"
@@ -295,6 +302,7 @@ function ModalNovoConvite({ artistas, shows, onFechar, onCriado, artistaInicial 
         mensagem: mensagem.trim(),
         status: "pendente",
         criadoEm: new Date().toISOString(),
+        expiraEm: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
       };
       await fbSet("bandas_convites", id, convite);
       onCriado(convite);

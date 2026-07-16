@@ -123,6 +123,24 @@ export default function ConvitePublico({ id }) {
     </div>
   );
 
+  // Convite expirado
+  const expirado = convite.status === "pendente" && convite.expiraEm && new Date() > new Date(convite.expiraEm);
+  if (!resultado && expirado) {
+    return (
+      <div style={pageWrap}>
+        <Logo />
+        <div style={card}>
+          <div style={{ fontSize: 32, marginBottom: 12 }}>⏰</div>
+          <h2 style={{ fontWeight: 700, marginBottom: 8 }}>Convite expirado</h2>
+          <p style={{ color: "var(--text2)", fontSize: 14, lineHeight: 1.6 }}>
+            Este convite tinha validade de 24 horas e não está mais disponível para resposta.
+            Entre em contato com o Bar Pé Sujo para receber um novo link.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   // Já respondido anteriormente
   if (!resultado && convite.status !== "pendente") {
     return (
