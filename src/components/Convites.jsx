@@ -19,9 +19,13 @@ const STATUS_LABEL = {
   recusado: "Recusado",
 };
 
-export default function Convites({ artistas, shows, artistaInicial }) {
+export default function Convites({ artistas, shows, artistaInicial, onConsumed }) {
   const [convites, setConvites] = useState([]);
   const [modalAberto, setModalAberto] = useState(!!artistaInicial);
+
+  useEffect(() => {
+    if (artistaInicial) onConsumed?.();
+  }, []); // eslint-disable-line
   const [linkGerado, setLinkGerado] = useState(null);
   const [filtro, setFiltro] = useState("todos"); // "todos" | "pendente" | "respondido" | "recusado"
 

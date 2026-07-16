@@ -296,7 +296,7 @@ export default function App() {
             onAgendar={artista => { setAgendarArtista(artista); setAba("calendario"); }}
             onConvite={artista => { setConvidarArtista(artista); setAba("convites"); }} />
         )}
-        {aba === "convites" && <Convites key={convidarArtista?.id ?? "convites"} artistas={artistas} shows={shows} artistaInicial={convidarArtista} />}
+        {aba === "convites" && <Convites key={convidarArtista?.id ?? "convites"} artistas={artistas} shows={shows} artistaInicial={convidarArtista} onConsumed={() => setConvidarArtista(null)} />}
         {aba === "marketing" && <Marketing artistas={artistas} shows={shows} />}
         {aba === "confirmacoes" && <Confirmacoes artistas={artistas} shows={shows} />}
         {aba === "config" && <ConfigGeral tema={tema} onTemaChange={setTema} />}
