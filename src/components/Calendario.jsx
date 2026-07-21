@@ -169,6 +169,7 @@ function DiaCell({ dia, dataStr, regra, isHoje, passado, artistas, showDoSlot, s
         <span style={{
           fontSize: 11, fontWeight: isHoje ? 700 : 400,
           color: isHoje ? "var(--primary-light)" : passado ? "var(--text3)" : "var(--text2)",
+          flex: 1, textAlign: "center",
         }}>{dia}</span>
         {!fechado && (
           <button
