@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { fbSet } from "../firebase";
+import { useEscFechar } from "../hooks";
 import { GENEROS, REGRAS_DIA } from "../regras";
 import { formatarMoeda, formatarData } from "../utils";
 import { IconCheck, IconClock, IconFilter, IconDollar, IconX } from "../icons";
@@ -211,6 +212,7 @@ export default function Shows({ shows, artistas, onAtualizar, onSalvarShow }) {
 }
 
 function ModalEditarShow({ show, artistas, onSalvar, onFechar }) {
+  useEscFechar(onFechar);
   const artista = artistas.find(a => a.id === show.artistaId);
   const [data, setData] = useState(show.data ?? "");
   const [horario, setHorario] = useState(show.horario ?? "");

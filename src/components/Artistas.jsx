@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef } from "react";
 import { fbSet, fbDel, fbUploadFoto, fbDeleteFoto } from "../firebase";
+import { useEscFechar } from "../hooks";
 import { GENEROS, REGRAS_DIA, MESES, getFormacoes, artistaElegivelParaDia } from "../regras";
 import { IconPlus, IconEdit, IconTrash, IconSearch, IconMic, IconPhone, IconCheck, IconX, IconCalendar, IconChevronLeft, IconChevronRight, IconLink, IconMail } from "../icons";
 import { nanoid, diasNoMes, primeiroDiaSemana } from "../utils";
@@ -341,6 +342,7 @@ function ArtistaCard({ artista, onEdit, onDelete, onAgendar, onAprovar, onConvit
 }
 
 function ModalArtista({ artista, onSalvar, onFechar }) {
+  useEscFechar(onFechar);
   const [form, setForm] = useState({
     nome: artista?.nome ?? "",
     contato: artista?.contato ?? "",
@@ -597,6 +599,7 @@ function ModalArtista({ artista, onSalvar, onFechar }) {
 }
 
 function ModalAgendarShow({ artista, shows, onFechar, onSalvarShow, onSalvo }) {
+  useEscFechar(onFechar);
   const hoje = new Date();
   const [ano, setAno] = useState(hoje.getFullYear());
   const [mes, setMes] = useState(hoje.getMonth());
@@ -898,6 +901,7 @@ function ModalAgendarShow({ artista, shows, onFechar, onSalvarShow, onSalvo }) {
 }
 
 function ModalCadastroLink({ onFechar }) {
+  useEscFechar(onFechar);
   const [copiado, setCopiado] = useState(false);
   const url = `${window.location.origin}/cadastro`;
   const msgWpp = `E aí?! Que bom ter você por aqui, faça parte do quadro de Artistas do Bar Pé Sujo se cadastrando neste link:\n${url}`;

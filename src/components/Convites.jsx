@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { fbSet, fbDel, fbListen } from "../firebase";
+import { useEscFechar } from "../hooks";
 import { REGRAS_DIA, MESES, getFormacoes } from "../regras";
 import { nanoid, diasNoMes, primeiroDiaSemana, formatarData, formatarMoeda } from "../utils";
 import { IconPlus, IconX, IconChevronLeft, IconChevronRight, IconTrash, IconCheck, IconSend, IconLink } from "../icons";
@@ -225,6 +226,7 @@ export default function Convites({ artistas, shows, artistaInicial, onConsumed }
 }
 
 function ModalNovoConvite({ artistas, shows, onFechar, onCriado, artistaInicial }) {
+  useEscFechar(onFechar);
   const hoje = new Date();
   const [artistaId, setArtistaId] = useState(artistaInicial?.id ?? "");
   const [ano, setAno] = useState(hoje.getFullYear());
@@ -492,6 +494,7 @@ function ModalNovoConvite({ artistas, shows, onFechar, onCriado, artistaInicial 
 }
 
 function ModalLinkGerado({ convite, artista, onFechar }) {
+  useEscFechar(onFechar);
   const [copiado, setCopiado] = useState(false);
   const url = `${window.location.origin}/convite/${convite.id}`;
   const telefone = artista?.contato?.replace(/\D/g, "");

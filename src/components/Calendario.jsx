@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { fbDel } from "../firebase";
+import { useEscFechar } from "../hooks";
 import { REGRAS_DIA, GENEROS, artistasElegiveisParaSlot, getFormacoes } from "../regras";
 import { formatarMoeda, diasNoMes, primeiroDiaSemana } from "../utils";
 import { IconChevronLeft, IconChevronRight, IconX, IconCheck, IconPlus, IconTrash, IconClock } from "../icons";
@@ -252,6 +253,7 @@ function DiaCell({ dia, dataStr, regra, isHoje, passado, artistas, showDoSlot, s
 }
 
 function ModalShow({ slot, artistas, onSalvar, onExcluir, onFechar, onConvite }) {
+  useEscFechar(onFechar);
   const { data: dataInicial, horario: horarioInicial, show, customHorario, preArtista } = slot;
 
   const artistaInicial = preArtista ?? (show?.artistaId ? artistas.find(a => a.id === show.artistaId) : null);
