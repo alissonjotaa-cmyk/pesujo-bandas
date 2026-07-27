@@ -38,7 +38,7 @@ export default function Shows({ shows, artistas, onAtualizar, onSalvarShow }) {
   const [modalEditar, setModalEditar] = useState(null);
 
   const lista = useMemo(() => {
-    let r = [...shows].sort((a, b) => b.data?.localeCompare(a.data ?? "") ?? 0);
+    let r = [...shows].sort((a, b) => a.data?.localeCompare(b.data ?? "") ?? 0);
     if (filtroStatus) r = r.filter(s => s.status === filtroStatus);
     if (filtroMes) r = r.filter(s => s.data?.startsWith(filtroMes));
     return r;
