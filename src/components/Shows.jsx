@@ -128,11 +128,23 @@ export default function Shows({ shows, artistas, onAtualizar, onSalvarShow }) {
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-          {semanas.map(({ chave, seg, dom, shows: showsSemana }) => {
+          {(() => {
+            const hoje = new Date();
+            const diaHoje = hoje.getDay();
+            const diffSeg = diaHoje === 0 ? -6 : 1 - diaHoje;
+            const segAtual = new Date(hoje);
+            segAtual.setDate(hoje.getDate() + diffSeg);
+            segAtual.setHours(0,0,0,0);
+            const segAnterior = new Date(segAtual);
+            segAnterior.setDate(segAtual.getDate() - 7);
+            const chaveAtual = segAtual.toISOString().slice(0,10);
+            const chaveAnterior = segAnterior.toISOString().slice(0,10);
+            return semanas.map(({ chave, seg, dom, shows: showsSemana }) => {
+              const antiga = chave < chaveAnterior;
             const fmt = d => `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}`;
             const totalSemana = showsSemana.reduce((s, x) => s + (x.cache || 0), 0);
             return (
-              <div key={chave}>
+              <div key={chave} style={{ opacity: antiga ? 0.6 : 1 }}>
                 {/* Cabeçalho da semana */}
                 <div style={{
                   display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -204,7 +216,8 @@ export default function Shows({ shows, artistas, onAtualizar, onSalvarShow }) {
                 </div>
               </div>
             );
-          })}
+          });
+          })()}
         </div>
       )}
     </div>
