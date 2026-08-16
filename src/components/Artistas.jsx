@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef } from "react";
-import { fbSet, fbDel, fbUploadFoto, fbDeleteFoto } from "../firebase";
+import { setArtista, delArtista, fbUploadFoto, fbDeleteFoto } from "../firebase";
 import { useEscFechar } from "../hooks";
 import { GENEROS, REGRAS_DIA, MESES, getFormacoes, artistaElegivelParaDia } from "../regras";
 import { IconPlus, IconEdit, IconTrash, IconSearch, IconMic, IconPhone, IconCheck, IconX, IconCalendar, IconChevronLeft, IconChevronRight, IconLink, IconMail } from "../icons";
@@ -39,19 +39,19 @@ export default function Artistas({ artistas, shows, onAtualizar, onSalvarShow, o
 
   async function salvar(dados) {
     const id = dados.id ?? nanoid();
-    await fbSet("bandas_artistas", id, { ...dados, id });
+    await setArtista(id, { ...dados, id });
     onAtualizar();
     setModal(null);
   }
 
   async function aprovar(artista) {
-    await fbSet("bandas_artistas", artista.id, { ...artista, status: "ativo" });
+    await setArtista(artista.id, { ...artista, status: "ativo" });
     onAtualizar();
   }
 
   async function excluir(id) {
     if (!window.confirm("Excluir este artista?")) return;
-    await fbDel("bandas_artistas", id);
+    await delArtista(id);
     onAtualizar();
   }
 

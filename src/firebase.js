@@ -44,6 +44,20 @@ export async function fbDel(col, id) {
   await deleteDoc(doc(db, col, id));
 }
 
+// Espelha só nome/foto do artista numa coleção pública separada, para a
+// vitrine de marketing (sem login) não precisar ler telefone/PIX/cachê —
+// que ficam só em bandas_artistas, restrito à gerência. Ver auditoria de
+// segurança de 16/08/2026.
+export async function setArtista(id, dados) {
+  await fbSet("bandas_artistas", id, dados);
+  await fbSet("bandas_artistas_publico", id, { nome: dados.nome || "", fotoUrl: dados.fotoUrl || "" });
+}
+
+export async function delArtista(id) {
+  await fbDel("bandas_artistas", id);
+  await fbDel("bandas_artistas_publico", id);
+}
+
 export function fbListen(col, callback, ...queryConstraints) {
   const ref = queryConstraints.length
     ? query(collection(db, col), ...queryConstraints)

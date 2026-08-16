@@ -9,7 +9,7 @@ export default function MarketingPublico() {
   const [erro, setErro] = useState("");
 
   useEffect(() => {
-    Promise.all([fbGetAll("bandas_artistas"), fbGetAll("bandas_shows")])
+    Promise.all([fbGetAll("bandas_artistas_publico"), fbGetAll("bandas_shows")])
       .then(([a, s]) => { setArtistas(a); setShows(s); })
       .catch(() => setErro("Não foi possível carregar os dados. Tente novamente."))
       .finally(() => setCarregando(false));

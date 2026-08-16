@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { fbSet, fbUploadFoto, fbGetOne } from "../firebase";
+import { setArtista, fbUploadFoto, fbGetOne } from "../firebase";
 import { GENEROS, getFormacoes } from "../regras";
 import { IconPlus, IconX, IconCheck } from "../icons";
 import { nanoid } from "../utils";
@@ -151,7 +151,7 @@ export default function CadastroPublico() {
         }
       }
 
-      await fbSet("bandas_artistas", id, {
+      await setArtista(id, {
         id,
         nome: form.nome.trim(),
         contato: form.contato.trim(),
