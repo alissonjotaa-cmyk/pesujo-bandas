@@ -332,6 +332,23 @@ function ArtistaCard({ artista, onEdit, onDelete, onAgendar, onAprovar, onConvit
       }}>
         <IconMail size={13} /> Convite de show
       </button>
+      {artista.instagram && (
+        <a
+          href={`https://instagram.com/${artista.instagram.replace(/^@/, "")}`}
+          target="_blank" rel="noopener noreferrer"
+          style={{
+            display: "flex", alignItems: "center", gap: 6,
+            background: "#e1306c18", border: "1px solid #e1306c55",
+            borderRadius: 8, padding: "7px 12px", fontSize: 12, fontWeight: 600,
+            color: "#e1306c", textDecoration: "none", width: "100%",
+            justifyContent: "center", marginTop: 2,
+          }}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#e1306c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="#e1306c" stroke="none"/>
+          </svg>
+          {artista.instagram.startsWith("@") ? artista.instagram : `@${artista.instagram}`}
+        </a>
+      )}
       {artista.pix && <BotaoCopiarPix pix={artista.pix} />}
       {artista.observacoes && (
         <div style={{ color: "var(--text3)", fontSize: 11, fontStyle: "italic" }}>{artista.observacoes}</div>
