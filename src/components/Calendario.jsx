@@ -86,15 +86,12 @@ export default function Calendario({ artistas, shows, onAtualizar, onSalvarShow,
       <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch", margin: "0 -12px", padding: "0 12px 4px" }}>
         <div style={{ minWidth: 480 }}>
 
-      {/* Legenda dias */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 3, marginBottom: 3 }}>
+      {/* Grid — cabeçalho e dias na MESMA grade, para nunca desalinharem.
+          minmax(0, 1fr) impede que nome longo de artista alargue a coluna. */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(0, 1fr))", gap: 3 }}>
         {["Seg","Ter","Qua","Qui","Sex","Sáb","Dom"].map(d => (
-          <div key={d} style={{ textAlign: "center", color: "var(--text3)", fontSize: 11, fontWeight: 600, padding: "4px 0" }}>{d}</div>
+          <div key={d} style={{ textAlign: "center", color: "var(--text3)", fontSize: 11, fontWeight: 600, padding: "4px 0", marginBottom: 3 }}>{d}</div>
         ))}
-      </div>
-
-      {/* Grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 3 }}>
         {Array.from({ length: inicioDiaSemana }).map((_, i) => <div key={`v${i}`} />)}
 
         {Array.from({ length: dias }, (_, i) => {
@@ -164,18 +161,22 @@ function DiaCell({ dia, dataStr, regra, isHoje, passado, artistas, showDoSlot, s
       border: isHoje ? "1px solid var(--primary)88" : "1px solid var(--border)",
       borderRadius: 6, padding: "6px 6px", minHeight: 100,
       opacity: fechado ? 0.35 : 1,
+      minWidth: 0, overflow: "hidden",
     }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-        <span style={{
+      {/* O número fica centrado na célula inteira; o "+" flutua à direita
+          sem roubar espaço, senão o dia sai do centro da coluna. */}
+      <div style={{ position: "relative", marginBottom: 4 }}>
+        <div style={{
           fontSize: 11, fontWeight: isHoje ? 700 : 400,
           color: isHoje ? "var(--primary-light)" : passado ? "var(--text3)" : "var(--text2)",
-          flex: 1, textAlign: "center",
-        }}>{dia}</span>
+          textAlign: "center",
+        }}>{dia}</div>
         {!fechado && (
           <button
             onClick={() => onNovoHorario(dataStr)}
             title="Adicionar horário"
             style={{
+              position: "absolute", top: 0, right: 0,
               background: "none", border: "none", cursor: "pointer",
               color: "var(--text3)", padding: "1px 2px", lineHeight: 1,
               display: "flex", alignItems: "center", opacity: 0.6,
@@ -203,7 +204,7 @@ function DiaCell({ dia, dataStr, regra, isHoje, passado, artistas, showDoSlot, s
             }}>
             <span style={{ color: "var(--text3)", fontSize: 10 }}>{slot} </span>
             {show ? (
-              <span style={{ display: "flex", alignItems: "center", gap: 3, overflow: "hidden" }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 3, overflow: "hidden", minWidth: 0 }}>
                 {/* Ponto do gênero selecionado, ou pontos de todos os gêneros se não houver seleção */}
                 {(() => {
                   const generos = show.generoId
@@ -213,7 +214,7 @@ function DiaCell({ dia, dataStr, regra, isHoje, passado, artistas, showDoSlot, s
                     <span key={g} style={{ width: 5, height: 5, borderRadius: "50%", background: GENEROS[g]?.cor ?? corGenero, flexShrink: 0 }} />
                   ));
                 })()}
-                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>
                   {artista?.nome ?? "?"}
                 </span>
               </span>
@@ -237,14 +238,14 @@ function DiaCell({ dia, dataStr, regra, isHoje, passado, artistas, showDoSlot, s
               fontSize: 11, fontWeight: 600, lineHeight: 1.3,
             }}>
             <span style={{ color: "var(--text3)", fontSize: 10 }}>{show.horario} </span>
-            <span style={{ display: "flex", alignItems: "center", gap: 3, overflow: "hidden" }}>
+            <span style={{ display: "flex", alignItems: "center", gap: 3, overflow: "hidden", minWidth: 0 }}>
               {(() => {
                 const generos = show.generoId ? [show.generoId] : (artista?.generos ?? []);
                 return generos.slice(0, 3).map(g => (
                   <span key={g} style={{ width: 5, height: 5, borderRadius: "50%", background: GENEROS[g]?.cor ?? corGenero, flexShrink: 0 }} />
                 ));
               })()}
-              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{artista?.nome ?? "?"}</span>
+              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>{artista?.nome ?? "?"}</span>
             </span>
           </button>
         );
