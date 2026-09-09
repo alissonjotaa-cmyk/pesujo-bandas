@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { fbSet } from "../firebase";
+import { setShow } from "../firebase";
 import { useEscFechar } from "../hooks";
 import { GENEROS, REGRAS_DIA } from "../regras";
 import { formatarMoeda, formatarData } from "../utils";
@@ -80,7 +80,7 @@ export default function Shows({ shows, artistas, onAtualizar, onSalvarShow }) {
   async function togglePago(show) {
     setCarregando(c => ({ ...c, [show.id]: true }));
     const novoStatus = show.status === "pago" ? "pendente" : "pago";
-    await fbSet("bandas_shows", show.id, { ...show, status: novoStatus });
+    await setShow(show.id, { ...show, status: novoStatus });
     onAtualizar();
     setCarregando(c => ({ ...c, [show.id]: false }));
   }

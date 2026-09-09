@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { fbDel } from "../firebase";
+import { delShow } from "../firebase";
 import { useEscFechar } from "../hooks";
 import { REGRAS_DIA, GENEROS, artistasElegiveisParaSlot, getFormacoes } from "../regras";
 import { formatarMoeda, diasNoMes, primeiroDiaSemana } from "../utils";
@@ -66,7 +66,7 @@ export default function Calendario({ artistas, shows, onAtualizar, onSalvarShow,
 
   async function excluirShow(show) {
     if (!window.confirm("Remover este show?")) return;
-    await fbDel("bandas_shows", show.id);
+    await delShow(show.id);
     onAtualizar();
     setModalSlot(null);
   }

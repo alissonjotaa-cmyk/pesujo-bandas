@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { db, fbSet, fbGetAllQuery, where } from "../firebase";
+import { db, fbSet, fbGetAllQuery, where, setShow } from "../firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { nanoid, formatarData, formatarMoeda } from "../utils";
 import { IconCheck, IconX, IconCalendar } from "../icons";
@@ -36,7 +36,7 @@ export default function ConvitePublico({ id }) {
     setEnviando(true);
     setErro(null);
     try {
-      const showsExistentes = await fbGetAllQuery("bandas_shows", where("status", "!=", "cancelado"));
+      const showsExistentes = await fbGetAllQuery("bandas_shows_publico", where("status", "!=", "cancelado"));
       const slotOcupado = (data, horario) =>
         showsExistentes.some(s => s.data === data && s.horario === horario);
 
@@ -59,7 +59,7 @@ export default function ConvitePublico({ id }) {
             conflitos.push(slot);
           } else {
             const showId = nanoid();
-            await fbSet("bandas_shows", showId, {
+            await setShow(showId, {
               id: showId,
               artistaId: convite.artistaId,
               data: slot.data,
@@ -97,7 +97,7 @@ export default function ConvitePublico({ id }) {
       console.error("Erro ao confirmar convite:", err);
       setErro(
         err?.code === "permission-denied"
-          ? "Sem permissão para salvar. Verifique as regras do Firebase (bandas_shows e bandas_convites precisam permitir escrita pública)."
+          ? "Sem permissão para salvar. Verifique as regras do Firebase (bandas_shows, bandas_shows_publico e bandas_convites precisam permitir escrita pública sem login)."
           : `Erro ao confirmar: ${err?.message ?? "Tente novamente."}`
       );
     } finally {

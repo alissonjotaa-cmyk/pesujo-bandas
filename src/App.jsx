@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import { auth, onAuthStateChanged, signOut, fbGetOne, fbSet, fbListen, orderBy } from "./firebase";
+import { auth, onAuthStateChanged, signOut, fbGetOne, fbListen, orderBy, setShow } from "./firebase";
 import { nanoid } from "./utils";
 import Login from "./components/Login";
 import Artistas from "./components/Artistas";
@@ -82,7 +82,7 @@ export default function App() {
 
   async function salvarShow(dados) {
     const id = dados.id ?? nanoid();
-    await fbSet("bandas_shows", id, { ...dados, id });
+    await setShow(id, { ...dados, id });
   }
 
   if (user === undefined) return <Splash />;

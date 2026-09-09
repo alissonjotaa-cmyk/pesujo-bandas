@@ -58,6 +58,32 @@ export async function delArtista(id) {
   await fbDel("bandas_artistas_publico", id);
 }
 
+// Mesmo padrão do artista, agora para os shows. `bandas_shows` guarda o
+// `cache` (valor pago por show) e por isso é restrito à gerência; a vitrine
+// pública lê este espelho, que não tem esse campo. Auditoria de 09/09/2026 —
+// até então a vitrine lia `bandas_shows` direto e o cachê de todo show estava
+// aberto na internet.
+//
+// Os campos abaixo são exatamente os que `Marketing.jsx` usa. A regra do
+// Firestore trava a lista com hasOnly(): acrescentar campo aqui sem
+// acrescentar lá faz a escrita falhar, em vez de vazar em silêncio.
+const CAMPOS_SHOW_PUBLICO = ["id", "artistaId", "data", "horario", "status", "generoId"];
+
+export async function setShow(id, dados) {
+  await fbSet("bandas_shows", id, dados);
+  const publico = Object.fromEntries(
+    CAMPOS_SHOW_PUBLICO
+      .filter(k => dados[k] !== undefined && dados[k] !== null)
+      .map(k => [k, dados[k]])
+  );
+  await fbSet("bandas_shows_publico", id, { ...publico, id });
+}
+
+export async function delShow(id) {
+  await fbDel("bandas_shows", id);
+  await fbDel("bandas_shows_publico", id);
+}
+
 export function fbListen(col, callback, ...queryConstraints) {
   const ref = queryConstraints.length
     ? query(collection(db, col), ...queryConstraints)
