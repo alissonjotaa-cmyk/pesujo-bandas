@@ -13,7 +13,7 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "espelhar-shows": "node scripts/espelhar-shows.mjs"
+    "espelhar-publico": "node scripts/espelhar-publico.mjs"
   },
   "browserslist": {
     "production": [

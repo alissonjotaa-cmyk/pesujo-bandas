@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Backfill de `bandas_shows_publico`.
+// Backfill das coleções espelho: `bandas_shows_publico` e `bandas_artistas_publico`.
 //
 // POR QUE ISSO EXISTE
 //
@@ -29,8 +29,8 @@
 //
 // COMO RODAR
 //
-//   node scripts/espelhar-shows.mjs           (mostra o que faria)
-//   node scripts/espelhar-shows.mjs --aplicar (grava)
+//   node scripts/espelhar-publico.mjs           (mostra o que faria)
+//   node scripts/espelhar-publico.mjs --aplicar (grava)
 // ─────────────────────────────────────────────────────────────────────────────
 import { initializeApp } from "firebase/app";
 import { getAuth, signInWithEmailAndPassword, signOut } from "firebase/auth";
@@ -50,6 +50,10 @@ const firebaseConfig = {
 // Espelho igual ao de src/firebase.js. Se divergir, a regra do Firestore
 // (hasOnly) rejeita a escrita — de propósito.
 const CAMPOS = ["id", "artistaId", "data", "horario", "status", "generoId"];
+
+// O espelho de artista aceita SÓ estes dois campos (hasOnly na regra). Nome e
+// foto são o que a vitrine mostra; telefone, PIX e cachê ficam de fora.
+const CAMPOS_ARTISTA = ["nome", "fotoUrl"];
 
 const c = {
   reset: "\x1b[0m", bold: "\x1b[1m", dim: "\x1b[2m",
@@ -123,8 +127,38 @@ for (const d of snap.docs) {
   }
 }
 
+// ─── Artistas ────────────────────────────────────────────────────────────────
+// Mesma história dos shows: `bandas_artistas_publico` só recebe documento
+// quando setArtista() roda. Artista cadastrado antes do espelho existir
+// (16/08/2026) não tem entrada, e a vitrine não consegue mostrar o nome dele
+// nos shows futuros — some o nome, não a data, então passa despercebido.
+const snapA = await getDocs(collection(db, "bandas_artistas"));
+const snapE = await getDocs(collection(db, "bandas_artistas_publico"));
+const jaEspelhados = new Set(snapE.docs.map(d => d.id));
+
+const faltando = snapA.docs.filter(d => !jaEspelhados.has(d.id));
+console.log(`\n${snapA.size} artista(s), ${jaEspelhados.size} já espelhado(s), ` +
+            `${c.bold}${faltando.length} faltando${c.reset}.\n`);
+
+for (const d of faltando) {
+  const dados = d.data();
+  const publico = Object.fromEntries(
+    CAMPOS_ARTISTA.map(k => [k, dados[k] ?? ""])
+  );
+  console.log(`  ${c.azul}${d.id}${c.reset} ${dados.nome ?? "(sem nome)"}`);
+  if (APLICAR) {
+    try {
+      await setDoc(doc(db, "bandas_artistas_publico", d.id), publico);
+      gravados++;
+    } catch (e) {
+      console.log(`    ${c.vermelho}✗ falhou:${c.reset} ${e.code ?? e.message}`);
+      pulados++;
+    }
+  }
+}
+
 console.log(APLICAR
-  ? `\n${c.verde}${c.bold}${gravados} espelhado(s)${c.reset}${pulados ? `, ${c.vermelho}${pulados} falharam${c.reset}` : ""}`
+  ? `\n${c.verde}${c.bold}${gravados} espelhado(s) no total${c.reset}${pulados ? `, ${c.vermelho}${pulados} falharam${c.reset}` : ""}`
   : `\n${c.dim}Simulação encerrada. Rode com --aplicar para gravar.${c.reset}`);
 
 await signOut(auth);
