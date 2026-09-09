@@ -71,6 +71,7 @@ export default function CadastroPublico() {
   const [termoAceito, setTermoAceito] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [enviado, setEnviado] = useState(false);
+  const [fotoFalhou, setFotoFalhou] = useState(false);
   const [erro, setErro] = useState("");
   const fileRef = useRef();
 
@@ -145,7 +146,9 @@ export default function CadastroPublico() {
           fotoUrl = await fbUploadFoto(fotoPath, fotoFile, `${form.nome.trim()}.${ext}`);
         } catch (uploadErr) {
           console.warn("Upload da foto falhou:", uploadErr.message);
-          // Continua sem foto — o cadastro é salvo normalmente
+          // O cadastro vale mais que a foto: salva assim mesmo, mas avisa.
+          // Sem o aviso o artista acha que mandou a foto e ninguem descobre.
+          setFotoFalhou(true);
           fotoUrl = "";
           fotoPath = "";
         }
@@ -190,6 +193,18 @@ export default function CadastroPublico() {
             <p style={{ color: "var(--text2)", fontSize: 14, lineHeight: 1.6 }}>
               Recebemos suas informações. Entraremos em contato em breve para confirmar sua agenda no Bar Pé Sujo!
             </p>
+            {fotoFalhou && (
+              <div style={{
+                marginTop: 20, textAlign: "left",
+                background: "#f59e0b18", border: "1px solid #f59e0b55",
+                borderRadius: 8, padding: "12px 14px",
+                fontSize: 13, color: "#f59e0b", lineHeight: 1.6,
+              }}>
+                <strong>Sua foto não pôde ser enviada.</strong> O restante do
+                cadastro foi salvo normalmente. Nos mande a foto pelo WhatsApp
+                quando entrarmos em contato.
+              </div>
+            )}
           </div>
         </div>
       </div>

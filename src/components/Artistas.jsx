@@ -375,6 +375,7 @@ function ModalArtista({ artista, onSalvar, onFechar }) {
   const [fotoPreview, setFotoPreview] = useState(artista?.fotoUrl ?? "");
   const [fotoFile, setFotoFile] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [erro, setErro] = useState("");
   const fileRef = useRef();
 
   function setFormacao(idx, key, val) {
@@ -435,6 +436,7 @@ function ModalArtista({ artista, onSalvar, onFechar }) {
     if (!form.nome.trim()) return;
     if (form.formacoes.length === 0) return;
     setUploading(true);
+    setErro("");
     try {
       const { integrantes: _old, ...resto } = form;
       const formacoes = form.formacoes.map(f => ({
@@ -458,6 +460,16 @@ function ModalArtista({ artista, onSalvar, onFechar }) {
         fotoUrl = "";
       }
       onSalvar({ ...resto, formacoes, fotoUrl, fotoPath });
+    } catch (err) {
+      // Sem este catch a promise rejeitava e a edicao inteira sumia calada:
+      // onSalvar nunca rodava e o modal so parava de carregar.
+      console.error(err);
+      const semStorage = err?.code === "storage/unauthorized"
+        || err?.code === "storage/unknown"
+        || /billing|402/i.test(err?.message ?? "");
+      setErro(semStorage
+        ? "Nao foi possivel enviar a foto (armazenamento indisponivel). Remova a foto e salve o restante, ou tente de novo mais tarde."
+        : `Erro ao salvar: ${err?.message ?? "tente novamente."}`);
     } finally {
       setUploading(false);
     }
@@ -602,6 +614,14 @@ function ModalArtista({ artista, onSalvar, onFechar }) {
               onChange={e => setForm(f => ({ ...f, observacoes: e.target.value }))}
               rows={2} style={{ ...inputStyle, resize: "vertical" }} placeholder="Equipamentos necessários, rider, etc." />
           </Field>
+
+          {erro && (
+            <div style={{
+              background: "var(--danger)18", border: "1px solid var(--danger)55",
+              borderRadius: 8, padding: "10px 12px", fontSize: 12,
+              color: "var(--danger)", lineHeight: 1.5,
+            }}>{erro}</div>
+          )}
 
           <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
             <button type="button" onClick={onFechar} style={btnSecondary} disabled={uploading}>Cancelar</button>
